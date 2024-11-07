@@ -3,13 +3,13 @@
 Global objective: 
 
 K-means:
-Object: minimize the sum of squared distance from each item to its nearest averaged center.
+Object: minimize the sum of squared distance from each item to its nearest averaged center. l_p = 2 norm
 K-centers:
-Object: minimize the maximum distance from each item to its nearest cluster centers
+Object: minimize the maximum distance from each item to its nearest cluster centers l_inf norm.
 k-medians:
-Object: minimize the sum of distance from each item to its nearest median. 
+Object: minimize the sum of distance from each item to its nearest median. l_p = 1 norm
 k-medoids:
-Object: minimize the sum of squared distance from each item to its nearest medoids.
+Object: minimize the sum of squared distance from each item to its nearest medoids. l_p = 2 as well.
 '''
 
 import numpy as np
@@ -231,6 +231,15 @@ class KDBSCAN:
                 final_labels[self.labels_ == list(unique_labels)[i + self.k + 1]] = nearest_cluster_index
 
         return final_labels
+
+class MapReduceKCenter:
+    # Fast Distributed k-Center Clustering with Outliers on Massive Data
+    def __init__(self, points, cluster_num, eps, min_samples, k):
+        self.points = np.array(points)
+        self.cluster_num = cluster_num
+
+   
+
 class Clustering():
     def __init__(self, n_clusters, max_iter=1000):
         self.n_clusters = n_clusters
@@ -270,7 +279,7 @@ class Clustering():
     Baselines from paper to be implemented:
     Fast Distributed k-Center Clustering with Outliers on Massive Data
     Solving k-center Clustering (with Outliers) in MapReduce and Streaming, almost as Accurately as Sequentially
-    Fast Distributed k-Center Clustering with Outliers on Massive Data
+    
     Greedy Strategy Works for k-Center Clustering with Outliers and Coreset Construction
     A Composable Coreset for k-Center in Doubling Metrics
     Randomized Greedy Algorithms and Composable Coreset for k-Center Clustering with Outliers
