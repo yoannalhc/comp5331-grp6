@@ -26,16 +26,15 @@ from sklearn.metrics import pairwise_distances_argmin_min
 class Metrics():
     def __init__(self):
         pass
-    def fraction_points_changing_cluster(self, old_clusters, new_clusters):
-        changes = np.sum(old_clusters != new_clusters)
-        total_points = len(old_clusters)
+    def fraction_points_changing_cluster(self, old_medoids, new_medoids):
+        changes = np.sum(old_medoids != new_medoids)
+        total_points = len(old_medoids)
         return changes / total_points
 
-    def solution_cost(self, points, clusters, medoids):
+    def solution_cost(self, points, medoids):
         max_distance = 0
-        for i, point in enumerate(points):
-            medoid = medoids[clusters[i]]
-            distance = np.linalg.norm(point - points[medoid])
+        for point, medoid in zip(points, medoids):
+            distance = np.linalg.norm(point - medoid)
             max_distance = max(max_distance, distance)
         return max_distance
 
@@ -43,10 +42,10 @@ class Metrics():
         """Count the number of unique clusters formed."""
         return len(np.unique(clusters))
     
-    def evaluate(self, points, old_clusters, new_clusters, medoids):
-        fraction_points_changing_cluster_result = self.fraction_points_changing_cluster(old_clusters, new_clusters)
-        solution_cost_result = self.solution_cost(points, new_clusters, medoids)
-        number_of_clusters_result = self.number_of_clusters(new_clusters)
+    def evaluate(self, old_points, old_medoids, new_points, new_medoids):
+        fraction_points_changing_cluster_result = self.fraction_points_changing_cluster(old_medoids, new_medoids)
+        solution_cost_result = max(self.solution_cost(old_points, old_medoids), self.solution_cost(new_points, new_medoids))
+        number_of_clusters_result = (self.number_of_clusters(old_medoids), self.number_of_clusters(new_medoids))
         return fraction_points_changing_cluster_result, solution_cost_result, number_of_clusters_result
 
 class CarvingAlgorithm:
