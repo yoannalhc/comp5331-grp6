@@ -48,5 +48,5 @@ class Geo(Dataset):
 
 if __name__ == '__main__':
     #first_day, second_day = Uber("../dataset/uber/uber_epsilon.csv").load()
-    first_day, second_day = Geo("../dataset/snap_standford/Brightkite_epsilon.csv", "Brightkite", 1.1, 10).load()
+    first_day, second_day = Geo("../dataset/snap_standford/brightkite_epsilon.csv", "Brightkite", 1.1, 10).load()
     print(len(first_day), len(first_day[0]))
