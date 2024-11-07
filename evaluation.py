@@ -204,6 +204,32 @@ class SpectralClustering:
 
         return cluster_assignment
     
+class NormalizedCut:
+    # Normalized Cuts and Image Segmentation
+    def __init__(self, points, cluster_num):
+        self.points = np.array(points)
+        self.cluster_num = cluster_num
+
+    def distance_matrix(self, points):
+        return np.linalg.norm(points[:, np.newaxis] - points, axis=2)
+
+    def normalized_cut(self):
+        distances = self.distance_matrix(self.points)
+        sigma = np.median(distances)
+        similarity_matrix = np.exp(-distances ** 2 / (2 * sigma ** 2))
+
+        degree_matrix = np.diag(np.sum(similarity_matrix, axis=1))
+        laplacian_matrix = degree_matrix - similarity_matrix
+
+        # Solve the eigenvector problem
+        eigenvalues, eigenvectors = eigh(laplacian_matrix, eigvals=(1, self.cluster_num))
+
+        # Perform k-means clustering on the eigenvectors
+        kmeans = KMeans(n_clusters=self.cluster_num, random_state=0)
+        cluster_assignment = kmeans.fit_predict(eigenvectors)
+
+        return cluster_assignment
+    
 class KDBSCAN:
     # ROCK: A Robust Clustering Algorithm for Categorical Attributes
     def __init__(self, points, cluster_num, eps, min_samples, k):
@@ -239,7 +265,6 @@ class MapReduceKCenter:
         self.cluster_num = cluster_num
 
    
-
 class Clustering():
     def __init__(self, n_clusters, max_iter=1000):
         self.n_clusters = n_clusters
