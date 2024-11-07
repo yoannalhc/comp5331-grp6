@@ -247,8 +247,10 @@ class resilient_k_center():
                         cluster[index_c] = (p, closest_center)
                         break
 
+        # get final center list
         centers_final = np.unique([c[1] for c in cluster], axis=0)
         #print("cluster center:", centers_final)
+        # label each data belongs to which center in centers_final with its idx
         labels = []
         for data, center in cluster:
             idx = np.where(np.all(centers_final == center, axis=1))

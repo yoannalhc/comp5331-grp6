@@ -93,6 +93,6 @@ def process_uber(dataset_path, save_path):
     print(f'{datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}: finish')
 
 if __name__ == "__main__":
-    ds_path = "../../dataset/Uber/uber-raw-data-jun14.csv"
-    save_path = "../../dataset/Uber/"
+    ds_path = "../../dataset/uber/uber-raw-data-jun14.csv"
+    save_path = "../../dataset/uber/"
     process_uber(ds_path, save_path)

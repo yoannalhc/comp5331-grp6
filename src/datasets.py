@@ -26,5 +26,5 @@ class Uber(Dataset):
         return first_day, second_day
 
 if __name__ == '__main__':
-    first_day, second_day = Uber("../dataset/Uber/uber_epsilon.csv").load()
+    first_day, second_day = Uber("../dataset/uber/uber_epsilon.csv").load()
     print(len(first_day), len(first_day[0]))
