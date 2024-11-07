@@ -4,7 +4,7 @@ import pandas as pd
 from os.path import join
 import numpy as np
 
-def plot_cluster_result(pair1, pair2, label1, label2, save_path, ds_name):
+def plot_cluster_result(pair1, pair2, label1, label2, save_path, ds):
 
     # Compute PCA of data set
     if pair1.shape[1] > 3:
@@ -68,6 +68,6 @@ def plot_cluster_result(pair1, pair2, label1, label2, save_path, ds_name):
         ax[0].set_title('Pair 1')
         ax[1].set_title('Pair 2')
 
-    plt.suptitle(f'{ds_name.title()} Clustering Result')
-    plt.savefig(join(save_path, ds_name + '_cluster_result.png'), bbox_inches='tight')
+    plt.suptitle(f'{ds.name.title()} Clustering Result (k = {ds.k})')
+    plt.savefig(join(save_path, f'{ds.name}_{ds.k}_cluster_result.png'), bbox_inches='tight')
     plt.show()

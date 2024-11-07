@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import datetime
 import numpy as np
 from os.path import join, isfile
+from helper import geo_to_cartesian
 
 def draw(G, first_day_geo, second_day_geo):
     pos = dict()
@@ -12,14 +13,6 @@ def draw(G, first_day_geo, second_day_geo):
     pos.update((n, (2, i)) for i, n in enumerate(second_day_geo))
     nx.draw(G, with_labels=True, pos=pos)
     plt.show()
-
-def geo_to_cartesian(lat, lon):
-    lat, lon = np.deg2rad(lat), np.deg2rad(lon)
-    R = 6371  # radius of the earth
-    x = R * np.cos(lat) * np.cos(lon)
-    y = R * np.cos(lat) * np.sin(lon)
-    z = R * np.sin(lat)
-    return x, y, z
 
 def create_graph(first_day, second_day, save_path):
     print(f'{datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}: creating graph')
