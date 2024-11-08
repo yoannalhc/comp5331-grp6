@@ -7,15 +7,20 @@ import datetime
 
 def filter_geo(dataset_path, save_path, ds_name):
     print(f'{datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}: filtering')
-    ds = pd.read_csv(dataset_path, sep="\t", header=None)
-    ds.columns = ["user", "check-in time", "latitude", "longitude", "location id"]
-    ds = ds.dropna()
-    first_week = ds.loc[ds['check-in time'].str.contains(r'2010-01-0[1-7]', regex=True)]
-    second_week = ds.loc[ds['check-in time'].str.contains(r'2010-01-(?:0[8-9]|1[0-4])', regex=True)]
-    if not isdir(save_path):
-        mkdir(save_path)
-    first_week.to_csv(join(save_path, f'{ds_name}_first_week.csv'), index=False)
-    second_week.to_csv(join(save_path, f'{ds_name}_second_week.csv'), index=False)
+
+    if not isfile(join(save_path, f'{ds_name}_first_week.csv')):
+        ds = pd.read_csv(dataset_path, sep="\t", header=None)
+        ds.columns = ["user", "check-in time", "latitude", "longitude", "location id"]
+        ds = ds.dropna()
+        first_week = ds.loc[ds['check-in time'].str.contains(r'2010-01-0[1-7]', regex=True)]
+        second_week = ds.loc[ds['check-in time'].str.contains(r'2010-01-(?:0[8-9]|1[0-4])', regex=True)]
+        if not isdir(save_path):
+           mkdir(save_path)
+        first_week.to_csv(join(save_path, f'{ds_name}_first_week.csv'), index=False)
+        second_week.to_csv(join(save_path, f'{ds_name}_second_week.csv'), index=False)
+    else:
+        first_week = pd.read_csv(join(save_path, f'{ds_name}_first_week.csv'))
+        second_week = pd.read_csv(join(save_path, f'{ds_name}_second_week.csv'))
 
     first_week_geo = [geo_to_cartesian(lat, lon) for (lat, lon) in
                       zip(first_week['latitude'], first_week['longitude'])]  # [(x, y, z)]
@@ -23,12 +28,21 @@ def filter_geo(dataset_path, save_path, ds_name):
     second_week_geo = [geo_to_cartesian(lat, lon) for (lat, lon) in
                        zip(second_week['latitude'], second_week['longitude'])]
     second_week_geo = np.asarray(list(map(list, second_week_geo)))
+    # print(len(first_week), first_week_geo.shape, first_week_geo)
+    # print(len(second_week), second_week_geo.shape, second_week_geo)
+    # print(len(first_week), first_week_geo.shape)
+    # print(len(second_week), second_week_geo.shape)
+    #pd.DataFrame(first_week_geo, columns=['x','y','z']).to_csv(join(save_path, f'{ds_name}_first_week_geo.csv'), index=False)
+    #pd.DataFrame(second_week_geo, columns=['x', 'y', 'z']).to_csv(join(save_path, f'{ds_name}_second_week_geo.csv'), index=False)
     first_week_filtered = first_week[["user", "check-in time"]].copy()
     second_week_filtered = second_week[["user", "check-in time"]].copy()
-    for coor1, coor2 in zip(first_week_geo, second_week_geo):
-        for i, axis in enumerate(('x', 'y', 'z')):
-            first_week_filtered.loc[:, axis] = coor1[i]
-            second_week_filtered.loc[:, axis] = coor2[i]
+    for i, coor in enumerate(first_week_geo):
+        for j, axis in enumerate(('x', 'y', 'z')):
+            first_week_filtered.loc[i, axis] = coor[j]
+    for i, coor in enumerate(second_week_geo):
+        for j, axis in enumerate(('x', 'y', 'z')):
+            second_week_filtered.loc[i, axis] = coor[j]
+
     first_week_filtered.to_csv(join(save_path, f'{ds_name}_first_week_filtered.csv'), index=False)
     second_week_filtered.to_csv(join(save_path, f'{ds_name}_second_week_filtered.csv'), index=False)
 
@@ -56,8 +70,8 @@ def process_geo(dataset_path, save_path, ds_name):
 
 
 if __name__ == "__main__":
-    #ds_name = "Brightkite"
-    ds_name = "Gowalla"
-    ds_path = f"../../dataset/snap_standford/{ds_name}_totalCheckins.txt"
-    save_path = "../../dataset/snap_standford/"
-    process_geo(ds_path, save_path, ds_name)
+    ds_names = ["Brightkite", "Gowalla"]
+    for ds_name in ds_names:
+        ds_path = f"../../dataset/snap_standford/{ds_name}_totalCheckins.txt"
+        save_path = "../../dataset/snap_standford/"
+        process_geo(ds_path, save_path, ds_name)

@@ -2,18 +2,20 @@ import pandas as pd
 import numpy as np
 
 class Dataset:
-    def __init__(self, path):
+    def __init__(self, path, lamb, k, alpha, beta):
         self.path = path
+        self.lamb = lamb
+        self.k = k
+        self.alpha = alpha
+        self.beta = beta
 
     def load(self):
         pass
 
 class Uber(Dataset):
-    def __init__(self, path, lamb, k):
-        super().__init__(path)
+    def __init__(self, path, lamb, k, alpha, beta):
+        super().__init__(path, lamb, k, alpha, beta)
         self.name = 'Uber'
-        self.lamb = lamb
-        self.k = k
 
     def load(self):
         df = pd.read_csv(self.path, index_col=0)
@@ -28,11 +30,9 @@ class Uber(Dataset):
         return first_day, second_day
 
 class Geo(Dataset):
-    def __init__(self, path, name, lamb, k):
-        super().__init__(path)
+    def __init__(self, path, name, lamb, k, alpha, beta):
+        super().__init__(path, lamb, k, alpha, beta)
         self.name = name
-        self.lamb = lamb
-        self.k = k
 
     def load(self):
         df = pd.read_csv(self.path, index_col=0)
