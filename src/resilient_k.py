@@ -68,7 +68,7 @@ class Graph:
         return result
 
 
-class Approx_algo:
+class Gonz_Approx_Algo:
     def __init__(self, dataset, k, seed=5331):
         self.dataset = dataset
         self.k = k
@@ -83,7 +83,7 @@ class Approx_algo:
     def clustering(self):
         def initialize_clusters(dataset, seed=None):
             # Since we need to initialize the first cluster, there must be someone who does that first
-            cluster = Approx_algo.Cluster()  # call class Cluster
+            cluster = Gonz_Approx_Algo.Cluster()  # call class Cluster
             cluster.elements = dataset.tolist()  # All data now become the point of cluster 1
             if seed is not None:
                 random.seed(seed)
@@ -107,7 +107,7 @@ class Approx_algo:
                         v_i = point
 
             # Create new cluster B_(j + 1)
-            new_cluster = Approx_algo.Cluster()
+            new_cluster = Gonz_Approx_Algo.Cluster()
             new_cluster.head = v_i
             new_cluster.elements = []
 
@@ -153,6 +153,12 @@ class Approx_algo:
 
 class resilient_k_center():
     def __init__(self, dataset, k, epsilon, lamb=0.1, alpha=1.0, beta=1.0, algorithm="gonz", seed=5331):
+        if alpha != 0.5 and alpha != 1.0:
+            raise ValueError("alpha must be 0.5 or 1.0")
+        if beta != 0.5 and beta != 1.0:
+            raise ValueError("beta must be 0.5 or 1.0")
+        if algorithm != "gonz" and algorithm != "carv":
+            raise ValueError("algorithm must be gonz or carv")
         self.dataset = dataset
         self.k = k
         self.epsilon = epsilon
@@ -231,8 +237,9 @@ class resilient_k_center():
         #print("L: \n", L)
 
         # centres selected by Algorithm Approx [27] (line 10)
+        centers_approx = None
         if self.algorithm == "gonz":
-            approx_algo = Approx_algo(self.dataset, self.algorithm_centers, self.seed)
+            approx_algo = Gonz_Approx_Algo(self.dataset, self.algorithm_centers, self.seed)
             centers_approx = approx_algo.clustering()
         elif self.algorithm == "carv":
             pass 
