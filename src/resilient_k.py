@@ -152,18 +152,22 @@ class Approx_algo:
 
 
 class resilient_k_center():
-    def __init__(self, dataset, k, epsilon, lamb=0.1, seed=5331):
+    def __init__(self, dataset, k, epsilon, lamb=0.1, alpha=1.0, beta=1.0, algorithm="gonz", seed=5331):
         self.dataset = dataset
         self.k = k
         self.epsilon = epsilon
         self.lamb = lamb
-        self.number_of_centers = int(2 * self.k * np.log(1 / self.epsilon))
+        self.alpha = alpha
+        self.beta = beta
+        self.random_centers = int(self.alpha * 2 * self.k * np.log(1 / self.epsilon))
+        self.algorithm = algorithm
+        self.algorithm_centers = int(self.beta * self.k)
         self.seed = seed
 
     def resilient_k_center(self):
         # randomly assign centers (line 1)
         centers = self.dataset[np.random.choice(self.dataset.shape[0],
-                                                self.number_of_centers,
+                                                self.random_centers,
                                                 replace=False)]
         #print("Centers: \n:", centers)
 
@@ -227,8 +231,13 @@ class resilient_k_center():
         #print("L: \n", L)
 
         # centres selected by Algorithm Approx [27] (line 10)
-        approx_algo = Approx_algo(self.dataset, self.k, self.seed)
-        centers_approx = approx_algo.clustering()
+        if self.algorithm == "gonz":
+            approx_algo = Approx_algo(self.dataset, self.algorithm_centers, self.seed)
+            centers_approx = approx_algo.clustering()
+        elif self.algorithm == "carv":
+            pass 
+        else:
+            raise ValueError("Algorithm not supported")
         #print("Centers selected by Approx: \n", centers_approx)
 
         # Update the center as the closest center of C' to each point in L (line 11)
