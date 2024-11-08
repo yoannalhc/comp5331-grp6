@@ -48,13 +48,171 @@ class Metrics():
         number_of_clusters_result = (self.number_of_clusters(old_medoids), self.number_of_clusters(new_medoids))
         return fraction_points_changing_cluster_result, solution_cost_result, number_of_clusters_result
 
+class Graph:
+    def __init__(self, vertices):
+        self.V = vertices  
+        self.edges = [] # (index_u, index_v, weight)
+        self.adj_list = dict() # {index_u: [(index_v, weight)]}
+
+    def add_edge(self, u, v, weight):
+        self.edges.append((u, v, weight))
+    
+    def update_adj_list(self):
+        adj_list = {i: [] for i in range(self.V)}
+
+        print("Edges: ", self.edges)
+        for index_u, index_v, weight in self.edges:
+            adj_list[index_u].append((index_v, weight))
+            if (index_u != index_v):
+                adj_list[index_v].append((index_u, weight))
+        self.adj_list = adj_list
+        print("Adjacency list: \n", self.adj_list)
+
+    def sort(self):
+        self.edges.sort(key=lambda x: x[2])
+
+"""""
+
+
+def k_center_algorithm(graph, k):
+    
+    Implements the 2-approximation algorithm for the k-center problem.
+    
+    Parameters:
+    graph (dict): A dictionary where keys are nodes and values are lists of tuples (neighbor, weight).
+    k (int): The number of centers to find.
+    
+    Returns:
+    list: A list of k centers.
+    
+    import heapq
+
+    def get_max_distance(node, centers):
+        return max([graph[node][center] for center in centers])
+
+    # Step 1: Initialize variables
+    nodes = list(graph.keys())
+    n = len(nodes)
+    centers = []
+    max_dist = float('inf')
+    
+    # Step 2: Binary search for the minimum maximum distance
+    low, high = 0, max(max(weights for _, weights in neighbors) for neighbors in graph.values())
+    
+    while low < high:
+        mid = (low + high) // 2
+        # Step 3: Greedily select centers
+        centers = []
+        remaining_nodes = set(nodes)
+        
+        while remaining_nodes and len(centers) < k:
+            # Select the next center
+            next_center = remaining_nodes.pop()
+            centers.append(next_center)
+            # Remove all nodes within distance mid from the remaining nodes
+            to_remove = {node for node in remaining_nodes if graph[next_center][node] <= mid}
+            remaining_nodes -= to_remove
+        
+        if len(centers) <= k:
+            high = mid
+        else:
+            low = mid + 1
+    
+    return centers
+
+# Example usage:
+graph = {
+    'A': {'B': 2, 'C': 3, 'D': 8},
+    'B': {'A': 2, 'C': 2, 'D': 5},
+    'C': {'A': 3, 'B': 2, 'D': 2},
+    'D': {'A': 8, 'B': 5, 'C': 2}
+}
+k = 2
+centers = k_center_algorithm(graph, k)
+print("Selected centers:", centers)
+
+"""""
+
+
+
 class CarvingAlgorithm:
-    def __init__(self, points):
+    def __init__(self, points, seed=5331):
         self.points = np.array(points)
+        self.seed = seed
 
     def distance(self, point1, point2):
         """Calculate Euclidean distance between two points."""
         return np.linalg.norm(point1 - point2)
+    
+    def carve2(self, k, seed=5331):
+        """Perform the carving algorithm to find the minimum R to output at most k centers."""
+        def get_centers(graph, mid, seed):
+            S = set()
+            T = list(range(graph.V)) 
+            mid_weight = graph.edges[mid][2]
+            if (seed is not None):
+                random.seed(seed)
+
+            while len(T) > 0:
+                # Pick an arbitrary vertex as center
+                x = random.choice(T)
+                S.add(x)
+
+                # Set vertices as covered
+                to_remove = []
+                
+                for v, weight_x in graph.adj_list[x]:
+                    # since the adj_list is sorted, we can break early
+                    if (weight_x > mid_weight):
+                        break
+                    to_remove.append(v)
+                    for u, weight_v in graph.adj_list[v]:
+                        # since the adj_list is sorted, we can break early
+                        if (weight_v > mid_weight):
+                            break
+                        to_remove.append(u)
+                T = [index for index in T if index not in to_remove]
+
+            return S
+
+        # Create the complete graph with the edges sorted by weight
+        graph = Graph(len(self.points))
+        for i, point1 in enumerate(self.points):
+            for j in range (i, len(self.points)):
+                point2 = self.points[j]
+                if (i==j):
+                    distance = 0
+                else:
+                    distance = self.distance(point1, point2)
+                graph.add_edge(i, j, distance)
+        graph.sort()
+        graph.update_adj_list()
+
+        if (k == graph.V):
+            self.points
+        
+        low, high = 1, len(graph.edges)
+        centers_index = set()
+        smallest_R = float('inf')
+        
+        # Binary search on the smallest value of R
+        while high > low + 1:
+            mid = (high + low) // 2
+            S = get_centers(graph, mid, seed)
+            
+            if len(S) <= k:
+                # Try smaller R
+                high = mid  
+                centers_index = S
+                smallest_R = graph.edges[mid][2]
+            else:
+                # Try larger R
+                low = mid  
+
+        centers = [self.points[i] for i in centers_index]
+        print("Smallest R: ", smallest_R)
+        return np.asarray(centers)
+
 
     def carve(self, R, k):
         """Perform the carving algorithm with the given radius R and number of centers k."""
@@ -280,8 +438,15 @@ class Clustering():
     
 if __name__ == "__main__":
     # read data
-    csv_file = "Clustering-Datasets/01. UCI/ecoli.csv"
-    data = np.genfromtxt(csv_file, delimiter=',')
+    # csv_file = "Clustering-Datasets/01. UCI/ecoli.csv"
+    # data = np.genfromtxt(csv_file, delimiter=',')
     
     # test
     # cluster_algos = Clustering()
+
+    # Carving
+    test = np.array([[1, 2], [3, 4], [5, 6], [127, 128], [129, 130], [131, 132]])
+    carv = CarvingAlgorithm(test)
+    k = 2
+    cluster = carv.carve2(k)
+    print(cluster)
