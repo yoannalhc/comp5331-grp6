@@ -1,11 +1,11 @@
 import pandas as pd
 import numpy as np
-from helper import geo_to_cartesian
+from .helper import geo_to_cartesian
 from os.path import join, isfile, isdir
 from os import mkdir
 import datetime
 
-def filter_geo(dataset_path, save_path):
+def filter_geo(dataset_path, save_path, ds_name):
     print(f'{datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}: filtering')
     ds = pd.read_csv(dataset_path, sep="\t", header=None)
     ds.columns = ["user", "check-in time", "latitude", "longitude", "location id"]
@@ -37,7 +37,7 @@ def filter_geo(dataset_path, save_path):
 def process_geo(dataset_path, save_path, ds_name):
     process_path = join(save_path, 'process')
     if not isfile(join(process_path, f'{ds_name}_first_week_filtered.csv')):
-        first_week, second_week = filter_geo(dataset_path, process_path)
+        first_week, second_week = filter_geo(dataset_path, process_path, ds_name)
     else:
         first_week = pd.read_csv(join(process_path, f'{ds_name}_first_week_filtered.csv'))
         second_week = pd.read_csv(join(process_path, f'{ds_name}_second_week_filtered.csv'))

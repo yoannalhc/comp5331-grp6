@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import datetime
 import numpy as np
 from os.path import join, isfile
-from helper import geo_to_cartesian
+from .helper import geo_to_cartesian
 
 def draw(G, first_day_geo, second_day_geo):
     pos = dict()
