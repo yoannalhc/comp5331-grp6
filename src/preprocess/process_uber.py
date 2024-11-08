@@ -81,7 +81,7 @@ def process_uber(dataset_path, save_path):
             match = pickle.load(input_file)
         with open(join(save_path, r"uber_weighted_graph_info.pickle"), "rb") as input_file:
             first_day_info, second_day_info = pickle.load(input_file)
-    filter(match, first_day_info, second_day_info)
+    filter(match, first_day_info, second_day_info, save_path)
 
     print(f'{datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")}: finish')
 
