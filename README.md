@@ -13,9 +13,13 @@ Download them and put into `./dataset`
 project
 📂dataset
 └───📂birch
-│       │   
+│       │ 📜birch1_epsilon.csv
+│       │ 📜birch2_epsilon.csv
+│       │ 📜birch3_epsilon.csv
 └───📂high_dim
-│       │   
+│       │ 📜dim032_epsilon.csv
+│       │ 📜dim064_epsilon.csv
+│       │ 📜dim128_epsilon.csv
 └───📂snap_standford
 │       │ 📜Brightkite_epsilon.csv
 │       │ 📜Gowalla_epsilon.csv
