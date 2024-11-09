@@ -54,67 +54,31 @@ class Metrics():
         number_of_clusters_result = (self.number_of_clusters(old_medoids), self.number_of_clusters(new_medoids))
         return fraction_points_changing_cluster_result, solution_cost_result, number_of_clusters_result
 
-"""""
+class Graph:
+    def __init__(self, vertices):
+        self.V = vertices  
+        self.edges = [] # (index_u, index_v, weight)
+        self.adj_list = dict() # {index_u: [(index_v, weight)]}
 
+    def add_edge(self, u, v, weight):
+        self.edges.append((u, v, weight))
+    
+    def update_adj_list(self):
+        adj_list = {i: [] for i in range(self.V)}
 
-def k_center_algorithm(graph, k):
-    
-    Implements the 2-approximation algorithm for the k-center problem.
-    
-    Parameters:
-    graph (dict): A dictionary where keys are nodes and values are lists of tuples (neighbor, weight).
-    k (int): The number of centers to find.
-    
-    Returns:
-    list: A list of k centers.
-    
-    import heapq
+        print("Edges: ", self.edges)
+        for index_u, index_v, weight in self.edges:
+            adj_list[index_u].append((index_v, weight))
+            if (index_u != index_v):
+                adj_list[index_v].append((index_u, weight))
+        self.adj_list = adj_list
+        print("Adjacency list: \n", self.adj_list)
 
-    def get_max_distance(node, centers):
-        return max([graph[node][center] for center in centers])
+    def sort(self):
+        self.edges.sort(key=lambda x: x[2])
 
-    # Step 1: Initialize variables
-    nodes = list(graph.keys())
-    n = len(nodes)
-    centers = []
-    max_dist = float('inf')
-    
-    # Step 2: Binary search for the minimum maximum distance
-    low, high = 0, max(max(weights for _, weights in neighbors) for neighbors in graph.values())
-    
-    while low < high:
-        mid = (low + high) // 2
-        # Step 3: Greedily select centers
-        centers = []
-        remaining_nodes = set(nodes)
-        
-        while remaining_nodes and len(centers) < k:
-            # Select the next center
-            next_center = remaining_nodes.pop()
-            centers.append(next_center)
-            # Remove all nodes within distance mid from the remaining nodes
-            to_remove = {node for node in remaining_nodes if graph[next_center][node] <= mid}
-            remaining_nodes -= to_remove
-        
-        if len(centers) <= k:
-            high = mid
-        else:
-            low = mid + 1
-    
-    return centers
+############ k center algorithm ################
 
-# Example usage:
-graph = {
-    'A': {'B': 2, 'C': 3, 'D': 8},
-    'B': {'A': 2, 'C': 2, 'D': 5},
-    'C': {'A': 3, 'B': 2, 'D': 2},
-    'D': {'A': 8, 'B': 5, 'C': 2}
-}
-k = 2
-centers = k_center_algorithm(graph, k)
-print("Selected centers:", centers)
-
-"""""
 class CarvingAlgorithm:
     def __init__(self, points):
         self.points = np.array(points)
@@ -123,10 +87,14 @@ class CarvingAlgorithm:
         """Calculate Euclidean distance between two points."""
         return np.linalg.norm(point1 - point2)
 
-    def carve(self, R, k):
+    def carve(self, R, k, seed = 5331):
         """Perform the carving algorithm with the given radius R and number of centers k."""
         centers = []
         uncovered_indices = set(range(len(self.points)))  # Set of indices of uncovered points
+        labels = {i: None for i in range(len(self.points))}  # Initialize labels
+
+        if seed is not None:
+            random.seed(seed)
 
         while uncovered_indices and len(centers) < k:
             # Randomly select an uncovered point
@@ -136,26 +104,41 @@ class CarvingAlgorithm:
 
             # Mark all points within distance R from the new center as covered
             to_remove = {i for i in uncovered_indices if self.distance(center, self.points[i]) <= R}
+            for i in to_remove:
+                labels[i] = len(centers) - 1  # Assign the index of the center to the covered points
             uncovered_indices.difference_update(to_remove)
 
-        return centers
+        return centers, labels
 
-    def find_minimum_R(self, R_start, R_end, k, step=0.1):
-        """Find the minimum R such that at most k centers can be opened."""
+    def find_farthest_point_distance(self):
+        """Find the maximum distance between any two points in the dataset."""
+        max_distance = 0
+        for i, point1 in enumerate(self.points):
+            for j in range(i + 1, len(self.points)):
+                point2 = self.points[j]
+                distance = self.distance(point1, point2)
+                max_distance = max(max_distance, distance)
+        # print("Max distance: ", max_distance)
+        return max_distance
+
+    def find_minimum_R(self, k):
         best_R = None
-
-        R = R_start
-        while R <= R_end:
-            centers = self.carve(R, k)
-            if len(centers) <= k:  # Check if we opened at most k centers
-                best_R = R  # Update best R found
-                R -= step  # Try a smaller R
+        R_start = 0  # every point is a center
+        R_end = self.find_farthest_point_distance()  # one point is centre and all other points are within R distance
+        R_mid = (R_start + R_end) // 2
+        while R_end != R_start + 1:
+            centers = self.carve(R_mid, k)
+            # print("R_mid: ", R_mid, "Centers: ", len(centers), "k: ", k, "best_R: ", best_R)
+            if len(centers) <= k:
+                best_R = R_mid
+                R_end = R_mid
             else:
-                R += step  # Increase R
-
+                R_start = R_mid
+            R_mid = (R_start + R_end) // 2
+            # print("R_start: ", R_start, "R_end: ", R_end, "R_mid: ", R_mid)
+        print("Best R: ", best_R)
         return best_R
-
-        
+    
 class GonzalezAlgorithm:
     # Modified from https://github.com/TSunny007/Clustering/blob/master/notebooks/Gonzalez.ipynb
     def __init__(self, points, cluster_num):
@@ -194,7 +177,55 @@ class GonzalezAlgorithm:
             if method == 'norm':
                 clusters.append(self.norm_dist(self.points, clusters)) 
             # we add the furthest point from ALL current clusters
-        return (clusters)
+        labels = self.assign_labels(clusters)
+        return clusters, labels
+
+    def assign_labels(self, clusters):
+        labels = []
+        for point in self.points:
+            # Find the nearest cluster for each point
+            nearest_center_index = np.argmin([distance.euclidean(point, center) for center in clusters])
+            labels.append((point, nearest_center_index))  # (data point, index of nearest center)
+        return labels
+    
+class HSAlgorithm:
+    def __init__(self, points, cluster_num):
+        self.points = np.array(points)
+        self.cluster_num = cluster_num
+
+    
+    def hs_algorithm(self, points, k):
+        n = len(points)
+        centers = []
+        labels = []  
+        # set random seed = 5331
+        np.random.seed(5331)
+        initial_center_index = np.random.choice(n)
+        centers.append(points[initial_center_index])
+
+        for center_index in range(1, k):
+            max_distance = -1
+            next_center_index = None
+
+            for i in range(n):
+                # Find the distance to the nearest center
+                nearest_distance = min(distance.euclidean(points[i], centers[j]) for j in range(center_index))
+                
+                # Find the point with the maximum nearest distance
+                if nearest_distance > max_distance:
+                    max_distance = nearest_distance
+                    next_center_index = i
+
+            # Add the farthest point as the next center
+            centers.append(points[next_center_index])
+
+        for i in range(n):
+            nearest_center_index = np.argmin([distance.euclidean(points[i], center) for center in centers])
+            labels.append((points[i], nearest_center_index))
+
+        return centers, labels
+
+############ k medoid algorithm ################
 
 class PAMAlgorithm:
     def __init__(self, points, cluster_num):
@@ -298,6 +329,7 @@ class KDBSCAN:
                 final_labels[self.labels_ == list(unique_labels)[i + self.k + 1]] = nearest_cluster_index
 
         return final_labels
+
 class Clustering():
     def __init__(self, n_clusters, max_iter=1000):
         self.n_clusters = n_clusters
@@ -345,7 +377,7 @@ class Clustering():
     Dimensionality-adaptive k-center in sliding windows
     '''
     
-    
+ 
 if __name__ == "__main__":
     # read data
     # csv_file = "Clustering-Datasets/01. UCI/ecoli.csv"
