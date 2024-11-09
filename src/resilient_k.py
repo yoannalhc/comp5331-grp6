@@ -2,6 +2,7 @@ import numpy as np
 import copy
 import random
 import math
+from .evaluation import CarvingAlgorithm
 
 # helper function
 def distance(point1, point2):
@@ -242,7 +243,9 @@ class resilient_k_center():
             approx_algo = Gonz_Approx_Algo(self.dataset, self.algorithm_centers, self.seed)
             centers_approx = approx_algo.clustering()
         elif self.algorithm == "carv":
-            pass 
+            approx_algo = CarvingAlgorithm(self.dataset)
+            best_r = approx_algo.find_minimum_R(self.algorithm_centers)
+            centers_approx = approx_algo.carving(best_r, self.algorithm_centers)
         else:
             raise ValueError("Algorithm not supported")
         #print("Centers selected by Approx: \n", centers_approx)

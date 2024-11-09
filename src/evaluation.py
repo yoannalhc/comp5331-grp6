@@ -144,82 +144,95 @@ class CarvingAlgorithm:
         """Calculate Euclidean distance between two points."""
         return np.linalg.norm(point1 - point2)
     
-    def carve2(self, k, seed=5331):
-        """Perform the carving algorithm to find the minimum R to output at most k centers."""
-        def get_centers(graph, mid, seed):
-            S = set()
-            T = list(range(graph.V)) 
-            mid_weight = graph.edges[mid][2]
-            if (seed is not None):
-                random.seed(seed)
-
-            while len(T) > 0:
-                # Pick an arbitrary vertex as center
-                x = random.choice(T)
-                S.add(x)
-
-                # Set vertices as covered
-                to_remove = []
-                
-                for v, weight_x in graph.adj_list[x]:
-                    # since the adj_list is sorted, we can break early
-                    if (weight_x > mid_weight):
-                        break
-                    to_remove.append(v)
-                    for u, weight_v in graph.adj_list[v]:
-                        # since the adj_list is sorted, we can break early
-                        if (weight_v > mid_weight):
-                            break
-                        to_remove.append(u)
-                T = [index for index in T if index not in to_remove]
-
-            return S
-
-        # Create the complete graph with the edges sorted by weight
-        graph = Graph(len(self.points))
+    def find_farthest_point_distance(self):
+        """Find the maximum distance between any two points in the dataset."""
+        max_distance = 0
         for i, point1 in enumerate(self.points):
-            for j in range (i, len(self.points)):
+            for j in range(i+1, len(self.points)):
                 point2 = self.points[j]
-                if (i==j):
-                    distance = 0
-                else:
-                    distance = self.distance(point1, point2)
-                graph.add_edge(i, j, distance)
-        graph.sort()
-        graph.update_adj_list()
+                distance = self.distance(point1, point2)
+                max_distance = max(max_distance, distance)
+        return max_distance
+    
+    # def carve2(self, k, seed=5331):
+    #     """Perform the carving algorithm to find the minimum R to output at most k centers."""
+    #     def get_centers(graph, mid, seed):
+    #         S = set()
+    #         T = list(range(graph.V)) 
+    #         mid_weight = graph.edges[mid][2]
+    #         if (seed is not None):
+    #             random.seed(seed)
 
-        if (k == graph.V):
-            self.points
+    #         while len(T) > 0:
+    #             # Pick an arbitrary vertex as center
+    #             x = random.choice(T)
+    #             S.add(x)
+
+    #             # Set vertices as covered
+    #             to_remove = []
+                
+    #             for v, weight_x in graph.adj_list[x]:
+    #                 # since the adj_list is sorted, we can break early
+    #                 if (weight_x > mid_weight):
+    #                     break
+    #                 to_remove.append(v)
+    #                 for u, weight_v in graph.adj_list[v]:
+    #                     # since the adj_list is sorted, we can break early
+    #                     if (weight_v > mid_weight):
+    #                         break
+    #                     to_remove.append(u)
+    #             T = [index for index in T if index not in to_remove]
+
+    #         return S
+
+    #     # Create the complete graph with the edges sorted by weight
+    #     graph = Graph(len(self.points))
+    #     for i, point1 in enumerate(self.points):
+    #         for j in range (i, len(self.points)):
+    #             point2 = self.points[j]
+    #             if (i==j):
+    #                 distance = 0
+    #             else:
+    #                 distance = self.distance(point1, point2)
+    #             graph.add_edge(i, j, distance)
+    #     graph.sort()
+    #     graph.update_adj_list()
+
+    #     if (k == graph.V):
+    #         self.points
         
-        low, high = 1, len(graph.edges)
-        centers_index = set()
-        smallest_R = float('inf')
+    #     low, high = 1, len(graph.edges)
+    #     centers_index = set()
+    #     smallest_R = float('inf')
         
-        # Binary search on the smallest value of R
-        while high > low + 1:
-            mid = (high + low) // 2
-            S = get_centers(graph, mid, seed)
+    #     # Binary search on the smallest value of R
+    #     while high > low + 1:
+    #         mid = (high + low) // 2
+    #         S = get_centers(graph, mid, seed)
             
-            if len(S) <= k:
-                # Try smaller R
-                high = mid  
-                centers_index = S
-                smallest_R = graph.edges[mid][2]
-            else:
-                # Try larger R
-                low = mid  
+    #         if len(S) <= k:
+    #             # Try smaller R
+    #             high = mid  
+    #             centers_index = S
+    #             smallest_R = graph.edges[mid][2]
+    #         else:
+    #             # Try larger R
+    #             low = mid  
 
-        centers = [self.points[i] for i in centers_index]
-        print("Smallest R: ", smallest_R)
-        return np.asarray(centers)
+    #     centers = [self.points[i] for i in centers_index]
+    #     print("Smallest R: ", smallest_R)
+    #     return np.asarray(centers)
 
 
-    def carve(self, R, k):
+    def carve(self, R, k, seed=5331):
         """Perform the carving algorithm with the given radius R and number of centers k."""
         centers = []
         uncovered_indices = set(range(len(self.points)))  # Set of indices of uncovered points
+        if (seed is not None):
+            random.seed(seed)
 
-        while uncovered_indices and len(centers) < k:
+        # while uncovered_indices and len(centers) < k:
+        while uncovered_indices:
             # Randomly select an uncovered point
             idx = random.choice(list(uncovered_indices))
             center = self.points[idx]
@@ -231,21 +244,38 @@ class CarvingAlgorithm:
 
         return centers
 
-    def find_minimum_R(self, R_start, R_end, k, step=0.1):
-        """Find the minimum R such that at most k centers can be opened."""
+    # def find_minimum_R(self, R_start, R_end, k, step=0.1):
+    #     """Find the minimum R such that at most k centers can be opened."""
+    #     best_R = None
+
+    #     R = R_start
+    #     while R <= R_end:
+    #         centers = self.carve(R, k)
+    #         if len(centers) <= k:  # Check if we opened at most k centers
+    #             best_R = R  # Update best R found
+    #             R -= step  # Try a smaller R
+    #         else:
+    #             R += step  # Increase R
+
+    #     return best_R
+    
+    def find_minimum_R(self, k):
         best_R = None
-
-        R = R_start
-        while R <= R_end:
-            centers = self.carve(R, k)
-            if len(centers) <= k:  # Check if we opened at most k centers
-                best_R = R  # Update best R found
-                R -= step  # Try a smaller R
+        R_start = 0 # every point is a center
+        R_end = self.find_farthest_point_distance() # one point is centre and all other points are within R distance
+        R_mid = (R_start + R_end) // 2
+        while R_start < R_end:
+            centers = self.carve(R_mid, k)
+            if len(centers) <= k:
+                best_R = R_mid
+                R_end = R_mid
             else:
-                R += step  # Increase R
-
+                R_start = R_mid
+            R_mid = (R_start + R_end) // 2
+        print("Best R: ", best_R)
         return best_R
 
+        
 class GonzalezAlgorithm:
     # Modified from https://github.com/TSunny007/Clustering/blob/master/notebooks/Gonzalez.ipynb
     def __init__(self, points, cluster_num):
