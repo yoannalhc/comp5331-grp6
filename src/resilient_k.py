@@ -2,7 +2,6 @@ import numpy as np
 import copy
 import random
 import math
-from .evaluation import CarvingAlgorithm
 
 # helper function
 def distance(point1, point2):
@@ -150,6 +149,65 @@ class Gonz_Approx_Algo:
         heads = get_heads(clusters)
 
         return np.asarray(heads)
+
+
+class CarvingAlgorithm:
+    def __init__(self, points, seed=5331):
+        self.points = np.array(points)
+        self.seed = seed
+
+    def distance(self, point1, point2):
+        """Calculate Euclidean distance between two points."""
+        return np.linalg.norm(point1 - point2)
+
+    def find_farthest_point_distance(self):
+        """Find the maximum distance between any two points in the dataset."""
+        max_distance = 0
+        for i, point1 in enumerate(self.points):
+            for j in range(i + 1, len(self.points)):
+                point2 = self.points[j]
+                distance = self.distance(point1, point2)
+                max_distance = max(max_distance, distance)
+        # print("Max distance: ", max_distance)
+        return max_distance
+
+    def carve(self, R, k, seed=5331):
+        """Perform the carving algorithm with the given radius R and number of centers k."""
+        centers = []
+        uncovered_indices = set(range(len(self.points)))  # Set of indices of uncovered points
+        if (seed is not None):
+            random.seed(seed)
+
+        # while uncovered_indices and len(centers) < k:
+        while uncovered_indices:
+            # Randomly select an uncovered point
+            idx = random.choice(list(uncovered_indices))
+            center = self.points[idx]
+            centers.append(center)
+
+            # Mark all points within distance R from the new center as covered
+            to_remove = {i for i in uncovered_indices if self.distance(center, self.points[i]) <= R}
+            uncovered_indices.difference_update(to_remove)
+
+        return centers
+
+    def find_minimum_R(self, k):
+        best_R = None
+        R_start = 0  # every point is a center
+        R_end = self.find_farthest_point_distance()  # one point is centre and all other points are within R distance
+        R_mid = (R_start + R_end) // 2
+        while R_end != R_start + 1:
+            centers = self.carve(R_mid, k)
+            # print("R_mid: ", R_mid, "Centers: ", len(centers), "k: ", k, "best_R: ", best_R)
+            if len(centers) <= k:
+                best_R = R_mid
+                R_end = R_mid
+            else:
+                R_start = R_mid
+            R_mid = (R_start + R_end) // 2
+            # print("R_start: ", R_start, "R_end: ", R_end, "R_mid: ", R_mid)
+        print("Best R: ", best_R)
+        return best_R
 
 
 class resilient_k_center():

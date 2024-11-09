@@ -1,5 +1,5 @@
 /dataset/*
-
+/results/*
 # General
 .DS_Store
 .AppleDouble
