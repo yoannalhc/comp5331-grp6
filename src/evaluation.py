@@ -152,6 +152,7 @@ class CarvingAlgorithm:
                 point2 = self.points[j]
                 distance = self.distance(point1, point2)
                 max_distance = max(max_distance, distance)
+        # print("Max distance: ", max_distance)
         return max_distance
     
     # def carve2(self, k, seed=5331):
@@ -264,14 +265,16 @@ class CarvingAlgorithm:
         R_start = 0 # every point is a center
         R_end = self.find_farthest_point_distance() # one point is centre and all other points are within R distance
         R_mid = (R_start + R_end) // 2
-        while R_start < R_end:
+        while R_end != R_start + 1:
             centers = self.carve(R_mid, k)
+            # print("R_mid: ", R_mid, "Centers: ", len(centers), "k: ", k, "best_R: ", best_R)
             if len(centers) <= k:
                 best_R = R_mid
                 R_end = R_mid
             else:
                 R_start = R_mid
             R_mid = (R_start + R_end) // 2
+            # print("R_start: ", R_start, "R_end: ", R_end, "R_mid: ", R_mid)
         print("Best R: ", best_R)
         return best_R
 

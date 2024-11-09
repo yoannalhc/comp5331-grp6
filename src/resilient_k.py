@@ -245,7 +245,7 @@ class resilient_k_center():
         elif self.algorithm == "carv":
             approx_algo = CarvingAlgorithm(self.dataset)
             best_r = approx_algo.find_minimum_R(self.algorithm_centers)
-            centers_approx = approx_algo.carving(best_r, self.algorithm_centers)
+            centers_approx = approx_algo.carve(best_r, self.algorithm_centers)
         else:
             raise ValueError("Algorithm not supported")
         #print("Centers selected by Approx: \n", centers_approx)
