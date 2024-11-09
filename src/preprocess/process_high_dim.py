@@ -3,7 +3,7 @@ import numpy as np
 from os.path import join
 
 
-def process_birch(dataset_path, save_path, ds_name):
+def process_high_dim(dataset_path, save_path, ds_name):
     data = pd.read_csv(dataset_path, delim_whitespace=True, header=None)
     dim = int(ds_name[3:])
 
@@ -29,4 +29,4 @@ if __name__ == "__main__":
 
     ds_path = f"../../dataset/high_dim/{ds_name}.txt"
     save_path = "../../dataset/high_dim"
-    process_birch(ds_path, save_path, ds_name)
+    process_high_dim(ds_path, save_path, ds_name)
