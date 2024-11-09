@@ -81,7 +81,7 @@ class CarvingAlgorithm:
         """Calculate Euclidean distance between two points."""
         return np.linalg.norm(point1 - point2)
 
-    def carve(self, R, k, seed = None):
+    def carve(self, R, k, seed = 5331):
         """Perform the carving algorithm with the given radius R and number of centers k."""
         centers = []
         uncovered_indices = set(range(len(self.points)))  # Set of indices of uncovered points
@@ -104,19 +104,33 @@ class CarvingAlgorithm:
 
         return centers, labels
 
-    def find_minimum_R(self, R_start, R_end, k, step=0.1):
-        """Find the minimum R such that at most k centers can be opened."""
+    def find_farthest_point_distance(self):
+        """Find the maximum distance between any two points in the dataset."""
+        max_distance = 0
+        for i, point1 in enumerate(self.points):
+            for j in range(i + 1, len(self.points)):
+                point2 = self.points[j]
+                distance = self.distance(point1, point2)
+                max_distance = max(max_distance, distance)
+        # print("Max distance: ", max_distance)
+        return max_distance
+
+    def find_minimum_R(self, k):
         best_R = None
-
-        R = R_start
-        while R <= R_end:
-            centers = self.carve(R, k)
-            if len(centers) <= k:  # Check if we opened at most k centers
-                best_R = R  # Update best R found
-                R -= step  # Try a smaller R
+        R_start = 0  # every point is a center
+        R_end = self.find_farthest_point_distance()  # one point is centre and all other points are within R distance
+        R_mid = (R_start + R_end) // 2
+        while R_end != R_start + 1:
+            centers = self.carve(R_mid, k)
+            # print("R_mid: ", R_mid, "Centers: ", len(centers), "k: ", k, "best_R: ", best_R)
+            if len(centers) <= k:
+                best_R = R_mid
+                R_end = R_mid
             else:
-                R += step  # Increase R
-
+                R_start = R_mid
+            R_mid = (R_start + R_end) // 2
+            # print("R_start: ", R_start, "R_end: ", R_end, "R_mid: ", R_mid)
+        print("Best R: ", best_R)
         return best_R
     
 class GonzalezAlgorithm:
