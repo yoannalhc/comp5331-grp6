@@ -19,9 +19,19 @@ def process_birch(dataset_path, save_path, ds_name):
 
     data.to_csv(join(save_path, f'{ds_name}_epsilon.csv'), index=False)
 
+def shrink_birch(dataset_path, save_path, ds_name):
+    df = pd.read_csv(dataset_path, index_col=None)
+
+    sample = np.random.choice(np.arange(len(df.index)), size=1000, replace=False)
+    shrink_df = df.iloc[sample]
+    shrink_df.to_csv(join(save_path, f'shrink_{ds_name}_epsilon.csv'), index=False)
+
+
 if __name__ == "__main__":
     ds_name = "birch3"
 
-    ds_path = f"../../dataset/birch/{ds_name}.txt"
+    #ds_path = f"../../dataset/birch/{ds_name}.txt"
     save_path = "../../dataset/birch"
-    process_birch(ds_path, save_path, ds_name)
+    #process_birch(ds_path, save_path, ds_name)
+    ds_path = join(save_path, f'{ds_name}_epsilon.csv')
+    shrink_birch(ds_path, save_path, ds_name)

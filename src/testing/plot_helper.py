@@ -48,6 +48,7 @@ def plot_data(pair1, pair2, save_path, ds_name):
         ax = fig.add_subplot(1, 2, 2, projection='3d')
         ax.scatter(pair2[0], pair2[1], pair2[2])
         ax.set_title('Pair 2')
+
     elif pair1.shape[1] == 2:
         pair1 = pair1.T
         pair2 = pair2.T
@@ -57,6 +58,8 @@ def plot_data(pair1, pair2, save_path, ds_name):
         ax[1].scatter(pair2[0], pair2[1])
         ax[0].set_title('Pair 1')
         ax[1].set_title('Pair 2')
+        plt.tight_layout()
+
     else:
         pair1 = pair1.T
         pair2 = pair2.T
@@ -67,8 +70,11 @@ def plot_data(pair1, pair2, save_path, ds_name):
         ax[1].scatter(pair2[0], np.zeros_like(ar))
         ax[0].set_title('Pair 1')
         ax[1].set_title('Pair 2')
+        plt.tight_layout()
 
-    plt.suptitle(f'{ds_name} dataset')
+    fig.subplots_adjust(top=0.8)
+
+    plt.suptitle(f'{ds_name} dataset', y=0.98)
     plt.savefig(join(save_path, f'{ds_name}_visual.png'), bbox_inches='tight')
     plt.show()
 
@@ -116,6 +122,7 @@ def plot_cluster_result(pair1, pair2, label1, label2, save_path, ds, algo, alpha
         ax = fig.add_subplot(1, 2, 2, projection='3d')
         ax.scatter(pair2[0], pair2[1], pair2[2], c=label2)
         ax.set_title('Pair 2')
+
     elif pair1.shape[1] == 2:
         pair1 = pair1.T
         pair2 = pair2.T
@@ -125,6 +132,7 @@ def plot_cluster_result(pair1, pair2, label1, label2, save_path, ds, algo, alpha
         ax[1].scatter(pair2[0], pair2[1], c=label2)
         ax[0].set_title('Pair 1')
         ax[1].set_title('Pair 2')
+        plt.tight_layout()
     else:
         pair1 = pair1.T
         pair2 = pair2.T
@@ -135,7 +143,9 @@ def plot_cluster_result(pair1, pair2, label1, label2, save_path, ds, algo, alpha
         ax[1].scatter(pair2[0], np.zeros_like(ar), c=label2)
         ax[0].set_title('Pair 1')
         ax[1].set_title('Pair 2')
+        plt.tight_layout()
 
-    plt.suptitle(f'{ds.name.title()} Clustering Result (k = {ds.k}, {algo.title()}({alpha}, {beta}))')
+    fig.subplots_adjust(top=0.8)
+    plt.suptitle(f'{ds.name.title()} Clustering Result (k = {ds.k}, {algo.title()}({alpha}, {beta}))', y=0.98)
     plt.savefig(join(save_path, f'{ds.name}_{ds.k}_{algo}({alpha}_{beta})_cluster_result.png'), bbox_inches='tight')
     plt.show()

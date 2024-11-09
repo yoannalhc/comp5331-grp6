@@ -45,9 +45,10 @@ class Geo(Dataset):
         return first_day, second_day
     
 class Birch(Dataset):
-    def __init__(self, path, lamb, k):
+    def __init__(self, path, lamb, k, subset):
         super().__init__(path, lamb, k)
-        self.name = 'Birch'
+        self.name = 'Birch' + str(subset)
+        self.subset = subset
     
     def load(self):
         df = pd.read_csv(self.path, index_col = None)

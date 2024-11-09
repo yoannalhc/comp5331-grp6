@@ -27,9 +27,15 @@ class Metrics():
     def __init__(self):
         pass
     def fraction_points_changing_cluster(self, old_medoids, new_medoids):
-        changes = np.sum(old_medoids != new_medoids)
+        old_medoids = np.round(old_medoids).astype(int)
+        new_medoids = np.round(new_medoids).astype(int)
+        # print(np.all(old_medoids == new_medoids, axis=1))
+        # idx = np.where(np.all(old_medoids == new_medoids, axis=1))
+        # print("old_medoids:", old_medoids[idx])
+        # print("new_medoids:", new_medoids[idx])
+        change = np.sum(np.all(old_medoids != new_medoids, axis=1))
         total_points = len(old_medoids)
-        return changes / total_points
+        return change / total_points
 
     def solution_cost(self, points, medoids):
         max_distance = 0
