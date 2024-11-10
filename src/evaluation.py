@@ -26,14 +26,19 @@ from sklearn.metrics import pairwise_distances_argmin_min
 class Metrics():
     def __init__(self):
         pass
-    def fraction_points_changing_cluster(self, old_medoids, new_medoids):
+    def fraction_points_changing_cluster(self, old_medoids, new_medoids, epsilon):
         old_medoids = np.round(old_medoids).astype(int)
         new_medoids = np.round(new_medoids).astype(int)
         # print(np.all(old_medoids == new_medoids, axis=1))
         # idx = np.where(np.all(old_medoids == new_medoids, axis=1))
         # print("old_medoids:", old_medoids[idx])
         # print("new_medoids:", new_medoids[idx])
-        change = np.sum(np.all(old_medoids != new_medoids, axis=1))
+        #　change = np.sum(np.all(np.abs(old_medoids - new_medoids) > epsilon, axis=1))
+        dist = np.linalg.norm(old_medoids - new_medoids, axis=-1)
+        #print(f"distance{len(dist)}:", dist)
+
+        change = np.sum(dist > epsilon)
+        #print("change:", change)
         total_points = len(old_medoids)
         return change / total_points
 
@@ -46,10 +51,10 @@ class Metrics():
 
     def number_of_clusters(self, clusters):
         """Count the number of unique clusters formed."""
-        return len(np.unique(clusters))
+        return len(np.unique(clusters, axis=0))
     
-    def evaluate(self, old_points, old_medoids, new_points, new_medoids):
-        fraction_points_changing_cluster_result = self.fraction_points_changing_cluster(old_medoids, new_medoids)
+    def evaluate(self, old_points, old_medoids, new_points, new_medoids, epsilon):
+        fraction_points_changing_cluster_result = self.fraction_points_changing_cluster(old_medoids, new_medoids, epsilon)
         solution_cost_result = (self.solution_cost(old_points, old_medoids), self.solution_cost(new_points, new_medoids))
         number_of_clusters_result = (self.number_of_clusters(old_medoids), self.number_of_clusters(new_medoids))
         return fraction_points_changing_cluster_result, solution_cost_result, number_of_clusters_result

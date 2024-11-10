@@ -211,7 +211,7 @@ class CarvingAlgorithm:
 
 
 class resilient_k_center():
-    def __init__(self, dataset, k, epsilon, lamb=0.1, alpha=1.0, beta=1.0, algorithm="gonz", seed=5331):
+    def __init__(self, dataset, k, epsilon, lamb=0.1, alpha=1.0, beta=1.0, algorithm="gonz", seed=5331, exp=True):
         if alpha != 0.5 and alpha != 1.0:
             raise ValueError("alpha must be 0.5 or 1.0")
         if beta != 0.5 and beta != 1.0:
@@ -224,13 +224,20 @@ class resilient_k_center():
         self.lamb = lamb
         self.alpha = alpha
         self.beta = beta
-        self.random_centers = int(self.alpha * 2 * self.k * np.log(1 / self.epsilon))
+        if exp:
+            self.random_centers = int(self.alpha * self.k)
+        else:
+            self.random_centers = int(2 * self.k * np.log(1 / self.epsilon))
         self.algorithm = algorithm
-        self.algorithm_centers = int(self.beta * self.k)
+        if exp:
+            self.algorithm_centers = int(self.beta * self.k)
+        else:
+            self.algorithm_centers = self.k
         self.seed = seed
 
     def resilient_k_center(self):
         # randomly assign centers (line 1)
+        np.random.seed(self.seed)
         centers = self.dataset[np.random.choice(self.dataset.shape[0],
                                                 self.random_centers,
                                                 replace=False)]
