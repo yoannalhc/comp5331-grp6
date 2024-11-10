@@ -46,7 +46,7 @@ class Metrics():
 
     def number_of_clusters(self, clusters):
         """Count the number of unique clusters formed."""
-        return len(np.unique(clusters))
+        return len(np.unique(clusters, axis=0))
     
     def evaluate(self, old_points, old_medoids, new_points, new_medoids):
         fraction_points_changing_cluster_result = self.fraction_points_changing_cluster(old_medoids, new_medoids)
