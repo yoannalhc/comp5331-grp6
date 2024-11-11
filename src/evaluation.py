@@ -165,8 +165,8 @@ class CarvingAlgorithm:
         """Perform the carving algorithm with the given radius R and number of centers k."""
         centers = []
         uncovered_indices = set(range(len(self.points)))  # Set of indices of uncovered points
-        if (seed is not None):
-            random.seed(seed)
+
+        random.seed(seed)
 
         # while uncovered_indices and len(centers) < k:
         while uncovered_indices:
@@ -182,8 +182,7 @@ class CarvingAlgorithm:
         if is_clustering:
             labels = self.assign_labels(centers)
             return centers, labels
-        labels = self.assign_labels(centers)
-        return centers, labels
+        return centers
     def assign_labels(self, clusters):
         labels = []
         for point in self.points:
@@ -238,9 +237,10 @@ class GonzalezAlgorithm:
                 distances[distance_id] = math.sqrt(current_distance/len(data))
         return data[np.argmax(distances)]
 
-    def gonzalez(self, method = 'max'):
+    def gonzalez(self, method = 'max', seed = 5331):
         clusters = []
         # random choose first point
+        random.seed(seed)
         clusters.append(random.choice(self.points)) # assign the first point to the first cluster
         while len(clusters) < self.cluster_num:
             if method == 'max':
@@ -265,12 +265,12 @@ class HSAlgorithm:
         self.cluster_num = cluster_num
 
     
-    def hs_algorithm(self, points, k):
+    def hs_algorithm(self, points, k, seed):
         n = len(points)
         centers = []
         labels = []  
         # set random seed = 5331
-        np.random.seed(5331)
+        np.random.seed(seed)
         initial_center_index = np.random.choice(n)
         centers.append(points[initial_center_index])
 
