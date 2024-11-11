@@ -171,7 +171,7 @@ class CarvingAlgorithm:
         # print("Max distance: ", max_distance)
         return max_distance
 
-    def carve(self, R, k, seed=5331):
+    def carve(self, R, k, seed):
         """Perform the carving algorithm with the given radius R and number of centers k."""
         centers = []
         uncovered_indices = set(range(len(self.points)))  # Set of indices of uncovered points
@@ -197,7 +197,7 @@ class CarvingAlgorithm:
         R_end = self.find_farthest_point_distance()  # one point is centre and all other points are within R distance
         R_mid = (R_start + R_end) // 2
         while R_end != R_start + 1:
-            centers = self.carve(R_mid, k)
+            centers = self.carve(R_mid, k, self.seed)
             # print("R_mid: ", R_mid, "Centers: ", len(centers), "k: ", k, "best_R: ", best_R)
             if len(centers) <= k:
                 best_R = R_mid
@@ -308,9 +308,9 @@ class resilient_k_center():
             approx_algo = Gonz_Approx_Algo(self.dataset, self.algorithm_centers, self.seed)
             centers_approx = approx_algo.clustering()
         elif self.algorithm == "carv":
-            approx_algo = CarvingAlgorithm(self.dataset)
+            approx_algo = CarvingAlgorithm(self.dataset, self.seed)
             best_r = approx_algo.find_minimum_R(self.algorithm_centers)
-            centers_approx = approx_algo.carve(best_r, self.algorithm_centers)
+            centers_approx = approx_algo.carve(best_r, self.algorithm_centers, self.seed)
         else:
             raise ValueError("Algorithm not supported")
         #print("Centers selected by Approx: \n", centers_approx)

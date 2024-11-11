@@ -21,32 +21,113 @@ import networkx as nx
 from scipy.linalg import eigh
 from sklearn.cluster import KMeans
 from sklearn.cluster import DBSCAN
-from sklearn.metrics import pairwise_distances_argmin_min
+from sklearn.metrics import pairwise_distances_argmin_min, pairwise_distances
+from collections import defaultdict
+from scipy.optimize import linear_sum_assignment
 
 class Metrics():
     def __init__(self):
         pass
-    def fraction_points_changing_cluster(self, old_medoids, new_medoids, epsilon):
-        old_medoids = np.round(old_medoids).astype(int)
-        new_medoids = np.round(new_medoids).astype(int)
-        # print(np.all(old_medoids == new_medoids, axis=1))
-        # idx = np.where(np.all(old_medoids == new_medoids, axis=1))
-        # print("old_medoids:", old_medoids[idx])
-        # print("new_medoids:", new_medoids[idx])
-        #　change = np.sum(np.all(np.abs(old_medoids - new_medoids) > epsilon, axis=1))
-        dist = np.linalg.norm(old_medoids - new_medoids, axis=-1)
-        #print(f"distance{len(dist)}:", dist)
+    # def fraction_points_changing_cluster(self, old_medoids, new_medoids, epsilon):
+    #     old_medoids = np.round(old_medoids).astype(int)
+    #     new_medoids = np.round(new_medoids).astype(int)
+    #     # print(np.all(old_medoids == new_medoids, axis=1))
+    #     # idx = np.where(np.all(old_medoids == new_medoids, axis=1))
+    #     # print("old_medoids:", old_medoids[idx])
+    #     # print("new_medoids:", new_medoids[idx])
+    #     #　change = np.sum(np.all(np.abs(old_medoids - new_medoids) > epsilon, axis=1))
+    #     dist = np.linalg.norm(old_medoids - new_medoids, axis=-1)
+    #     #print(f"distance{len(dist)}:", dist)
+    #
+    #     change = np.sum(dist > epsilon)
+    #     #print("change:", change)
+    #     total_points = len(old_medoids)
+    #     return change / total_points
 
-        change = np.sum(dist > epsilon)
-        #print("change:", change)
-        total_points = len(old_medoids)
-        return change / total_points
+    def fraction_points_changing_cluster(self, labels1, labels2, centers1, centers2):
+        # Number of clusters in each dataset
+        num_clusters1 = len(centers1)
+        num_clusters2 = len(centers2)
+
+        cluster_points1_dict = defaultdict(list)
+        cluster_points2_dict = defaultdict(list)
+
+        if isinstance(labels1[0][1], tuple):
+            labels1 = [(c[0], c[1][0][0]) for c in labels1]  # [(pt, ([label]))] -> [(pt, label)]
+        #print("labels1:", labels1)
+        if isinstance(labels2[0][1], tuple):
+            labels2 = [(c[0], c[1][0][0]) for c in labels2]  # [(pt, (label))] -> [(pt, label)]
+
+        for point, label in labels1:
+            cluster_points1_dict[label].append(point)
+        for point, label in labels2:
+            cluster_points2_dict[label].append(point)
+
+        # Calculate the cost matrix: distances between cluster centers
+        cost_matrix = pairwise_distances(centers1, centers2)
+
+        # Apply the Hungarian algorithm to find the optimal assignment
+        row_ind, col_ind = linear_sum_assignment(cost_matrix)
+
+        # Create a mapping of clusters from dataset 1 to dataset 2
+        cluster1to2_mapping = {i: j for i, j in zip(row_ind, col_ind)}
+        # Count points in each cluster
+        count_points_dataset1 = np.zeros(num_clusters1)
+        count_points_dataset2 = np.zeros(num_clusters2)
+
+        # Count points in each cluster for dataset 1
+        for point, label in labels1:
+            count_points_dataset1[label] += 1
+
+        # Count points in each cluster for dataset 2
+        for point, label in labels2:
+            count_points_dataset2[label] += 1
+
+        # Calculate the fraction of points that changed clusters
+        changed_points = 0
+        total_points = len(labels1)
+        for point1, point2 in zip(labels1, labels2):
+            # check if mapping exist
+            _, label1 = point1
+            _, label2 = point2
+            # label1 = label1[0][0]
+            # label2 = label2[0][0]
+
+            if label1 not in cluster1to2_mapping:
+                changed_points += 1
+                continue
+
+            # check if mapped label belong to the same cluster
+            if cluster1to2_mapping[label1] != label2:
+                changed_points += 1
+
+        fraction_changed = changed_points / total_points if total_points > 0 else 0
+
+        return fraction_changed, cluster1to2_mapping
+
+    # def solution_cost(self, points, medoids):
+    #     max_distance = 0
+    #     for point, medoid in zip(points, medoids):
+    #         distance = np.linalg.norm(point - medoid)
+    #         max_distance = max(max_distance, distance)
+    #     return max_distance
 
     def solution_cost(self, points, medoids):
-        max_distance = 0
-        for point, medoid in zip(points, medoids):
-            distance = np.linalg.norm(point - medoid)
-            max_distance = max(max_distance, distance)
+        # create list of inf for each medoid
+        center_distance = np.zeros(len(medoids))
+        for i in range(len(center_distance)):
+            center_distance[i] = float('inf')
+
+        if isinstance(points[0][1], tuple):
+            points = [(c[0], c[1][0][0]) for c in points]  # [(pt, ([label]))] -> [(pt, label)]
+
+        for point, label in points:
+            # label = label[0][0]
+            center = medoids[label]
+            distance = np.linalg.norm(point - center)
+            if distance < center_distance[label]:
+                center_distance[label] = distance
+        max_distance = np.max(center_distance)
         return max_distance
 
     def number_of_clusters(self, clusters):
@@ -54,7 +135,10 @@ class Metrics():
         return len(np.unique(clusters, axis=0))
     
     def evaluate(self, old_points, old_medoids, new_points, new_medoids, epsilon):
-        fraction_points_changing_cluster_result = self.fraction_points_changing_cluster(old_medoids, new_medoids, epsilon)
+        #fraction_points_changing_cluster_result = self.fraction_points_changing_cluster(old_medoids, new_medoids, epsilon)
+        fraction_points_changing_cluster_result, mapping = self.fraction_points_changing_cluster(old_points, new_points,
+                                                                                                 old_medoids,
+                                                                                                 new_medoids)
         solution_cost_result = (self.solution_cost(old_points, old_medoids), self.solution_cost(new_points, new_medoids))
         number_of_clusters_result = (self.number_of_clusters(old_medoids), self.number_of_clusters(new_medoids))
         return fraction_points_changing_cluster_result, solution_cost_result, number_of_clusters_result
