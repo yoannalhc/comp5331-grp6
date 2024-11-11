@@ -22,6 +22,7 @@ from scipy.linalg import eigh
 from sklearn.cluster import KMeans
 from sklearn.cluster import DBSCAN
 from sklearn.metrics import pairwise_distances, pairwise_distances_argmin_min
+from sklearn.metrics.pairwise import euclidean_distances
 from scipy.optimize import linear_sum_assignment
 
 from scipy.spatial.distance import cdist
@@ -31,7 +32,16 @@ class Metrics():
     def init(self):
         pass
     
-    
+    def fraction_point_center(self,labels1, labels2):
+        total = len(labels1)
+        changed_points = 0
+        for point1, point2 in zip(labels1, labels2):
+            label1 = point1[1][0][0]
+            label2 = point2[1][0][0]
+            if label1 != label2:
+                changed_points += 1
+        return changed_points / total
+            
     def fraction_points_changing_cluster(self, labels1, labels2, centers1, centers2):
         # Number of clusters in each dataset
         num_clusters1 = len(centers1)
@@ -47,12 +57,18 @@ class Metrics():
         
         # Calculate the cost matrix: distances between cluster centers
         cost_matrix = pairwise_distances(centers1, centers2)
-
+    
         # Apply the Hungarian algorithm to find the optimal assignment
         row_ind, col_ind = linear_sum_assignment(cost_matrix)
 
         # Create a mapping of clusters from dataset 1 to dataset 2
         cluster1to2_mapping = {i: j for i, j in zip(row_ind, col_ind)}
+        
+        # for i in range(num_clusters1):
+        #     distance = cost_matrix[i, cluster1to2_mapping[i]]
+        #     print(distance)
+        
+        
         # Count points in each cluster
         count_points_dataset1 = np.zeros(num_clusters1)
         count_points_dataset2 = np.zeros(num_clusters2)
@@ -72,6 +88,7 @@ class Metrics():
             # check if mapping exist
             _, label1 = point1
             _, label2 = point2
+            
             label1 = label1[0][0]
             label2 = label2[0][0]
 
@@ -93,15 +110,16 @@ class Metrics():
     def solution_cost(self, points, medoids):
         max_distance = 0
         # create list of inf for each medoid
+        
         center_distance = np.zeros(len(medoids))
         for i in range(len(center_distance)):
-            center_distance[i] = float('inf')
+            center_distance[i] = float('-inf')
 
         for point, label in points:
             label = label[0][0]
             center = medoids[label]
             distance = np.linalg.norm(point - center)
-            if distance < center_distance[label]:
+            if distance > center_distance[label]:
                 center_distance[label] = distance
         max_distance = np.max(center_distance)
         return max_distance
@@ -111,7 +129,8 @@ class Metrics():
         return len(np.unique(clusters, axis=0))
 
     def evaluate(self, old_points, old_medoids, new_points, new_medoids, epsilon):
-        fraction_points_changing_cluster_result, mapping = self.fraction_points_changing_cluster(old_points, new_points, old_medoids, new_medoids)
+        # fraction_points_changing_cluster_result, mapping = self.fraction_points_changing_cluster(old_points, new_points, old_medoids, new_medoids)
+        fraction_points_changing_cluster_result = self.fraction_point_center(old_points, new_points)
         solution_cost_result = (self.solution_cost(old_points, old_medoids), self.solution_cost(new_points, new_medoids))
         number_of_clusters_result = (self.number_of_clusters(old_medoids), self.number_of_clusters(new_medoids))
         return fraction_points_changing_cluster_result, solution_cost_result, number_of_clusters_result
@@ -141,6 +160,19 @@ class Graph:
 
 ############ k center algorithm ################
 
+def manhantan_distance(point1, point2):
+    return np.sum(np.abs(point1 - point2))
+
+def euclidean_distance(point1, point2):
+    return np.linalg.norm(point1 - point2)
+
+def chebyshev_distance(point1, point2):
+    return np.max(np.abs(point1 - point2))
+
+# def MinkowskiDistance(point1, point2, p):
+#     return np.sum(np.abs(point1 - point2) ** p) ** (1 / p)
+
+
 class CarvingAlgorithm:
     def __init__(self, points, seed=5331):
         self.points = np.array(points)
@@ -148,7 +180,7 @@ class CarvingAlgorithm:
 
     def distance(self, point1, point2):
         """Calculate Euclidean distance between two points."""
-        return np.linalg.norm(point1 - point2)
+        return chebyshev_distance(point1, point2)
 
     def find_farthest_point_distance(self):
         """Find the maximum distance between any two points in the dataset."""
@@ -166,7 +198,7 @@ class CarvingAlgorithm:
         centers = []
         uncovered_indices = set(range(len(self.points)))  # Set of indices of uncovered points
 
-        random.seed(seed)
+        # random.seed(self.seed)
 
         # while uncovered_indices and len(centers) < k:
         while uncovered_indices:
@@ -207,6 +239,96 @@ class CarvingAlgorithm:
             # print("R_start: ", R_start, "R_end: ", R_end, "R_mid: ", R_mid)
         print("Best R: ", best_R)
         return best_R
+    
+class Gonz_Approx_Algo:
+    def __init__(self, dataset, k, seed=5331):
+        self.dataset = dataset
+        self.k = k
+        self.seed = seed
+
+    # Define KCluster
+    class Cluster:
+        def __init__(self):
+            self.elements = []  # Initially, cluster has no points inside
+            self.head = None
+
+    def clustering(self):
+        def initialize_clusters(dataset, seed):
+            # Since we need to initialize the first cluster, there must be someone who does that first
+            cluster = Gonz_Approx_Algo.Cluster()  # call class Cluster
+            cluster.elements = dataset.tolist()  # All data now become the point of cluster 1
+            # random.seed(self.seed)
+            cluster.head = random.choice(cluster.elements)
+            return [cluster]
+        
+        def distance(point1, point2):
+            # This function is to calculate the distance between 2 points
+            distance_x_y = chebyshev_distance(np.array(point1) , np.array(point2))
+            return distance_x_y
+        def expand_clusters(clusters, j):
+            # At this function, we will perform expansion
+
+            # We will find the point with maximal distance to the head
+            max_distance = -1
+            v_i = None
+
+            for i in range(j - 1):
+                current_cluster = clusters[i]
+
+                for point in current_cluster.elements:
+                    dist = distance(point, current_cluster.head)
+                    if dist > max_distance:
+                        max_distance = dist
+                        v_i = point
+
+            # Create new cluster B_(j + 1)
+            new_cluster = Gonz_Approx_Algo.Cluster()
+            new_cluster.head = v_i
+            new_cluster.elements = []
+
+            # Move elements to the new cluster
+            for i in range(j - 1):
+                current_cluster = clusters[i]
+                # print("head ", i+1, current_cluster.head)
+                for point in current_cluster.elements:
+                    # print("distance v_1", distance(point, v_i))
+                    # print("distance head", distance(point, current_cluster.head))
+                    if distance(point, v_i) <= distance(point, current_cluster.head):
+                        # print("point ", point)
+                        new_cluster.elements.append(point)
+
+                # Delete the elements that was appended to new cluster
+                current_cluster.elements = [element for element in current_cluster.elements if
+                                            element not in new_cluster.elements]
+                # print("Cluster ", i + 1, " : ", current_cluster.elements)
+
+            # Add this new cluster to a list of cluster
+            clusters.append(new_cluster)
+
+            return clusters
+
+        def get_heads(clusters):
+            # Give me the list of current clusters head
+            heads = []
+            for cluster in clusters:
+                heads.append(cluster.head)
+
+            return heads
+
+        clusters = initialize_clusters(self.dataset, self.seed)
+        for self.k in range(2,
+                            self.k + 1):  # note that it should be range(2, k+1), we start from 2 because we already initialize a cluster
+            clusters = expand_clusters(clusters, self.k)
+
+        # Get the heads of the clusters
+        heads = get_heads(clusters)
+        # assign labels
+        labels = []
+        for point in self.dataset:
+            # Find the nearest cluster for each point
+            nearest_center_index = np.argmin([distance(point, center) for center in heads])
+            labels.append((point, nearest_center_index))
+        return heads, labels
     
 class GonzalezAlgorithm:
     # Modified from https://github.com/TSunny007/Clustering/blob/master/notebooks/Gonzalez.ipynb

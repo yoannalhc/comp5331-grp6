@@ -2,6 +2,7 @@
 /results/*
 .zip
 .rar
+*.png
 # General
 .DS_Store
 .AppleDouble
