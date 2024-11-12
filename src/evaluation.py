@@ -193,12 +193,13 @@ class CarvingAlgorithm:
         # print("Max distance: ", max_distance)
         return max_distance
 
-    def carve(self, R, k, seed=5331, is_clustering=True):
+    def carve(self, R, k, is_fix_random_pattern, is_clustering=True):
         """Perform the carving algorithm with the given radius R and number of centers k."""
         centers = []
         uncovered_indices = set(range(len(self.points)))  # Set of indices of uncovered points
-
-        # random.seed(self.seed)
+        
+        if(self.seed is not None and is_fix_random_pattern):
+            random.seed(self.seed)
 
         # while uncovered_indices and len(centers) < k:
         while uncovered_indices:
@@ -222,13 +223,13 @@ class CarvingAlgorithm:
             nearest_center_index = np.argmin([distance.euclidean(point, center) for center in clusters])
             labels.append((point, nearest_center_index))  # (data point, index of nearest center)
         return labels
-    def find_minimum_R(self, k):
+    def find_minimum_R(self, k, is_fix_random_pattern=True):
         best_R = None
         R_start = 0  # every point is a center
         R_end = self.find_farthest_point_distance()  # one point is centre and all other points are within R distance
         R_mid = (R_start + R_end) // 2
         while R_end != R_start + 1:
-            centers = self.carve(R_mid, k, seed=self.seed, is_clustering=False)
+            centers = self.carve(R_mid, k, is_fix_random_pattern, is_clustering=False)
             # print("R_mid: ", R_mid, "Centers: ", len(centers), "k: ", k, "best_R: ", best_R)
             if len(centers) <= k:
                 best_R = R_mid
@@ -252,12 +253,14 @@ class Gonz_Approx_Algo:
             self.elements = []  # Initially, cluster has no points inside
             self.head = None
 
-    def clustering(self):
-        def initialize_clusters(dataset, seed):
+    def clustering(self, is_fix_random_pattern=True):
+        def initialize_clusters(dataset, is_fix_random_pattern):
             # Since we need to initialize the first cluster, there must be someone who does that first
             cluster = Gonz_Approx_Algo.Cluster()  # call class Cluster
             cluster.elements = dataset.tolist()  # All data now become the point of cluster 1
-            # random.seed(self.seed)
+
+            if(self.seed is not None and is_fix_random_pattern):
+                random.seed(self.seed)
             cluster.head = random.choice(cluster.elements)
             return [cluster]
         
@@ -315,7 +318,7 @@ class Gonz_Approx_Algo:
 
             return heads
 
-        clusters = initialize_clusters(self.dataset, self.seed)
+        clusters = initialize_clusters(self.dataset, is_fix_random_pattern)
         for self.k in range(2,
                             self.k + 1):  # note that it should be range(2, k+1), we start from 2 because we already initialize a cluster
             clusters = expand_clusters(clusters, self.k)
@@ -359,10 +362,11 @@ class GonzalezAlgorithm:
                 distances[distance_id] = math.sqrt(current_distance/len(data))
         return data[np.argmax(distances)]
 
-    def gonzalez(self, method = 'max', seed = 5331):
+    def gonzalez(self, method = 'max', seed = 5331, is_fix_random_pattern=True):
         clusters = []
         # random choose first point
-        random.seed(seed)
+        if (seed is not None and is_fix_random_pattern):
+            random.seed(seed)
         clusters.append(random.choice(self.points)) # assign the first point to the first cluster
         while len(clusters) < self.cluster_num:
             if method == 'max':
@@ -387,12 +391,13 @@ class HSAlgorithm:
         self.cluster_num = cluster_num
 
     
-    def hs_algorithm(self, points, k, seed):
+    def hs_algorithm(self, points, k, seed, is_fix_random_pattern):
         n = len(points)
         centers = []
         labels = []  
         # set random seed = 5331
-        np.random.seed(seed)
+        if (seed is not None and is_fix_random_pattern):
+            np.random.seed(seed)
         initial_center_index = np.random.choice(n)
         centers.append(points[initial_center_index])
 

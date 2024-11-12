@@ -80,13 +80,13 @@ class Gonz_Approx_Algo:
             self.elements = []  # Initially, cluster has no points inside
             self.head = None
 
-    def clustering(self):
-        def initialize_clusters(dataset, seed=5331):
+    def clustering(self, is_fix_random_pattern):
+        def initialize_clusters(dataset):
             # Since we need to initialize the first cluster, there must be someone who does that first
             cluster = Gonz_Approx_Algo.Cluster()  # call class Cluster
             cluster.elements = dataset.tolist()  # All data now become the point of cluster 1
-            if seed is not None:
-                random.seed(seed)
+            if self.seed is not None and is_fix_random_pattern:
+                random.seed(self.seed)
             cluster.head = random.choice(cluster.elements)
             return [cluster]
 
@@ -140,7 +140,7 @@ class Gonz_Approx_Algo:
 
             return heads
 
-        clusters = initialize_clusters(self.dataset, self.seed)
+        clusters = initialize_clusters(self.dataset)
         for self.k in range(2,
                             self.k + 1):  # note that it should be range(2, k+1), we start from 2 because we already initialize a cluster
             clusters = expand_clusters(clusters, self.k)
@@ -171,12 +171,12 @@ class CarvingAlgorithm:
         # print("Max distance: ", max_distance)
         return max_distance
 
-    def carve(self, R, k, seed=5331):
+    def carve(self, R, k, is_fix_random_pattern):
         """Perform the carving algorithm with the given radius R and number of centers k."""
         centers = []
         uncovered_indices = set(range(len(self.points)))  # Set of indices of uncovered points
-        if (seed is not None):
-            random.seed(seed)
+        if (self.seed is not None and is_fix_random_pattern):
+            random.seed(self.seed)
 
         # while uncovered_indices and len(centers) < k:
         while uncovered_indices:
@@ -191,13 +191,13 @@ class CarvingAlgorithm:
 
         return centers
 
-    def find_minimum_R(self, k):
+    def find_minimum_R(self, k, is_fix_random_pattern):
         best_R = None
         R_start = 0  # every point is a center
         R_end = self.find_farthest_point_distance()  # one point is centre and all other points are within R distance
         R_mid = (R_start + R_end) // 2
         while R_end != R_start + 1:
-            centers = self.carve(R_mid, k, seed = self.seed)
+            centers = self.carve(R_mid, k, is_fix_random_pattern)
             # print("R_mid: ", R_mid, "Centers: ", len(centers), "k: ", k, "best_R: ", best_R)
             if len(centers) <= k:
                 best_R = R_mid
@@ -229,9 +229,10 @@ class resilient_k_center():
         self.algorithm_centers = int(self.beta * self.k)
         self.seed = seed
 
-    def resilient_k_center(self,seed=5331):
+    def resilient_k_center(self, is_fix_random_pattern=True):
         # randomly assign centers (line 1)
-        np.random.seed(seed)
+        if (self.seed is not None and is_fix_random_pattern):
+            np.random.seed(self.seed)
         centers = self.dataset[np.random.choice(self.dataset.shape[0],
                                                 self.random_centers,
                                                 replace=False)]
@@ -307,11 +308,11 @@ class resilient_k_center():
         centers_approx = None
         if self.algorithm == "gonz":
             approx_algo = Gonz_Approx_Algo(self.dataset, self.algorithm_centers, self.seed)
-            centers_approx = approx_algo.clustering()
+            centers_approx = approx_algo.clustering(is_fix_random_pattern)
         elif self.algorithm == "carv":
-            approx_algo = CarvingAlgorithm(self.dataset,seed=seed)
-            best_r = approx_algo.find_minimum_R(self.algorithm_centers)
-            centers_approx = approx_algo.carve(best_r, self.algorithm_centers,seed=seed)
+            approx_algo = CarvingAlgorithm(self.dataset,seed=self.seed)
+            best_r = approx_algo.find_minimum_R(self.algorithm_centers, is_fix_random_pattern)
+            centers_approx = approx_algo.carve(best_r, self.algorithm_centers, is_fix_random_pattern)
         else:
             raise ValueError("Algorithm not supported")
         #print("Centers selected by Approx: \n", centers_approx)
