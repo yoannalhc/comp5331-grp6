@@ -31,13 +31,23 @@ class Metrics():
     def init(self):
         pass
     
-    def fraction_point_center(self,labels1, labels2):
+    def fraction_point_center(self, labels1, labels2, centers1, centers2):
+        # centers1, 2 shape [k]
+        pair1, pair2 = np.array([c[0] for c in labels1]),  np.array([c[0] for c in labels2])
+
         total = len(labels1)
         changed_points = 0
         for point1, point2 in zip(labels1, labels2):
             label1 = point1[1][0][0]
+            center1 = centers1[label1]
+            index1 = np.where(np.all(pair1 == center1, axis=1))[0][0]
             label2 = point2[1][0][0]
-            if label1 != label2:
+            center2 = centers2[label2]
+            # pair is a list of data point coordinate
+            # center 2
+            index2 = np.where(np.all(pair2 == center2, axis=1))[0][0] # return index of center2 in pair2
+            # center1 = old_medoids[label1]
+            if index1 != index2:
                 changed_points += 1
         return changed_points / total
             
@@ -49,17 +59,23 @@ class Metrics():
         cluster_points1_dict = defaultdict(list)
         cluster_points2_dict = defaultdict(list)
         
-        for point, label in labels1:
-            cluster_points1_dict[label[0][0]].append(point)
-        for point, label in labels2:
-            cluster_points2_dict[label[0][0]].append(point)
+        pair1, pair2 = np.array([c[0] for c in labels1]),  np.array([c[0] for c in labels2])
+        
+        for i, (point, label) in enumerate(labels1):
+            cluster_points1_dict[label[0][0]].append(i)
+        for i, (point, label) in enumerate(labels2):
+            cluster_points2_dict[label[0][0]].append(i)
         
         # Calculate the cost matrix: distances between cluster centers
         cost_matrix = pairwise_distances(centers1, centers2)
+        
+        # Calculate the cost matrix: number of overlapped datapoints between clusters
+        # for i in range(num_clusters1):
+        #     for j in range(num_clusters2):
+        #         cost_matrix[i, j] = len(set(cluster_points1_dict[i]).intersection(set(cluster_points2_dict[j])))
     
         # Apply the Hungarian algorithm to find the optimal assignment
         row_ind, col_ind = linear_sum_assignment(cost_matrix)
-
         # Create a mapping of clusters from dataset 1 to dataset 2
         cluster1to2_mapping = {i: j for i, j in zip(row_ind, col_ind)}
         
@@ -128,8 +144,11 @@ class Metrics():
         return len(np.unique(clusters, axis=0))
 
     def evaluate(self, old_points, old_medoids, new_points, new_medoids, epsilon):
-        fraction_points_changing_cluster_result, mapping = self.fraction_points_changing_cluster(old_points, new_points, old_medoids, new_medoids)
-        # fraction_points_changing_cluster_result = self.fraction_point_center(old_points, new_points)
+
+        # fraction_points_changing_cluster_result, mapping = self.fraction_points_changing_cluster(old_points, new_points, old_medoids, new_medoids)
+        fraction_points_changing_cluster_result = self.fraction_point_center(old_points, new_points, old_medoids, new_medoids)
+        
+        
         solution_cost_result = (self.solution_cost(old_points, old_medoids), self.solution_cost(new_points, new_medoids))
         number_of_clusters_result = (self.number_of_clusters(old_medoids), self.number_of_clusters(new_medoids))
         return fraction_points_changing_cluster_result, solution_cost_result, number_of_clusters_result
