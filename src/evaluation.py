@@ -129,8 +129,8 @@ class Metrics():
         return len(np.unique(clusters, axis=0))
 
     def evaluate(self, old_points, old_medoids, new_points, new_medoids, epsilon):
-        # fraction_points_changing_cluster_result, mapping = self.fraction_points_changing_cluster(old_points, new_points, old_medoids, new_medoids)
-        fraction_points_changing_cluster_result = self.fraction_point_center(old_points, new_points)
+        fraction_points_changing_cluster_result, mapping = self.fraction_points_changing_cluster(old_points, new_points, old_medoids, new_medoids)
+        # fraction_points_changing_cluster_result = self.fraction_point_center(old_points, new_points)
         solution_cost_result = (self.solution_cost(old_points, old_medoids), self.solution_cost(new_points, new_medoids))
         number_of_clusters_result = (self.number_of_clusters(old_medoids), self.number_of_clusters(new_medoids))
         return fraction_points_changing_cluster_result, solution_cost_result, number_of_clusters_result

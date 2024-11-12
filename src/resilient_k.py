@@ -235,8 +235,8 @@ class resilient_k_center():
         centers = self.dataset[np.random.choice(self.dataset.shape[0],
                                                 self.random_centers,
                                                 replace=False)]
-        #print("Centers: \n:", centers)
 
+        
         # construct edges and weights (line 2-4)
         E = []
         w = {}
@@ -272,6 +272,7 @@ class resilient_k_center():
         #print("resilient MST: \n", T)
 
         # assign clusters (line 7-8)
+        # cluster shape = n (coordinate, cluster coordinate)
         cluster = []
         for index_p, p in enumerate(self.dataset):
             if p.tolist() in centers.tolist():
@@ -283,11 +284,14 @@ class resilient_k_center():
                         cluster.append((p, self.dataset[index_v]))
                     elif (index_p == index_v) and (self.dataset[index_u].tolist() in centers.tolist()):
                         cluster.append((p, self.dataset[index_u]))
-
+        assert len(cluster) == len(self.dataset)
+        # at this moment, len(cluster) != n
+        
         #print("Initial Cluster: \n", cluster)
 
         # find non-center vertices which incident to the heaviest edges (line 9)
         n = len(self.dataset)
+   
         heaviest_edges = sorted(T, key=lambda item: item[2], reverse=True)[:int(self.epsilon * n)]
         #print("Heaviest Edges: \n", heaviest_edges)
         L = set()
@@ -313,20 +317,23 @@ class resilient_k_center():
         #print("Centers selected by Approx: \n", centers_approx)
 
         # Update the center as the closest center of C' to each point in L (line 11)
-        for index_p in L:
+        for index_p in L: # L = P\C 
             min_dist = float('inf')
             closest_center = None
-            for c in centers_approx:
+            for c in centers_approx: # C'
                 dist = distance(self.dataset[index_p], c)
                 if dist < min_dist:
                     min_dist = dist
                     closest_center = c
-            if (closest_center is not None):
-                for index_c, cluster_pair in enumerate(cluster):
-                    p, _ = cluster_pair
-                    if np.array_equal(p, self.dataset[index_p]):
-                        cluster[index_c] = (p, closest_center)
-                        break
+                    
+            # loop through all point in cluster
+            assert len(cluster) == n
+            for index_c, cluster_pair in enumerate(cluster): # len(cluster) != n
+                p, _ = cluster_pair
+                # only doing reassign?
+                if np.array_equal(p, self.dataset[index_p]):
+                    cluster[index_c] = (p, closest_center)
+                    break
 
         # get final center list
         centers_final = np.unique([c[1] for c in cluster], axis=0)
