@@ -232,11 +232,9 @@ class resilient_k_center():
     def resilient_k_center(self, is_fix_random_pattern=True):
         # randomly assign centers (line 1)
         if (self.seed is not None and is_fix_random_pattern):
-            np.random.seed(self.seed)
-        centers = self.dataset[np.random.choice(self.dataset.shape[0],
-                                                self.random_centers,
-                                                replace=False)]
-
+            random.seed(self.seed)
+        centers = np.array(random.sample(self.dataset.tolist(), self.random_centers))
+        print("Initial Centers: \n", centers)
         
         # construct edges and weights (line 2-4)
         E = []

@@ -32,13 +32,17 @@ class Metrics():
     def init(self):
         pass
     
-    def fraction_point_center(self,labels1, labels2):
-        total = len(labels1)
+    def fraction_point_center(self, old_points, old_medoids, new_points, new_medoids, pair1, pair2):
+        total = len(pair1)
         changed_points = 0
-        for point1, point2 in zip(labels1, labels2):
+        for point1, point2 in zip(old_points, new_points):
             label1 = point1[1][0][0]
+            center1 = old_medoids[label1]
+            index1 = np.where(np.all(pair1 == center1, axis=1))[0][0]
             label2 = point2[1][0][0]
-            if label1 != label2:
+            center2 = new_medoids[label2]
+            index2 = np.where(np.all(pair2 == center2, axis=1))[0][0] 
+            if index1 != index2:
                 changed_points += 1
         return changed_points / total
             
@@ -128,9 +132,9 @@ class Metrics():
         """Count the number of unique clusters formed."""
         return len(np.unique(clusters, axis=0))
 
-    def evaluate(self, old_points, old_medoids, new_points, new_medoids, epsilon):
-        fraction_points_changing_cluster_result, mapping = self.fraction_points_changing_cluster(old_points, new_points, old_medoids, new_medoids)
-        # fraction_points_changing_cluster_result = self.fraction_point_center(old_points, new_points)
+    def evaluate(self, old_points, old_medoids, new_points, new_medoids, epsilon, pair1, pair2):
+        # fraction_points_changing_cluster_result, mapping = self.fraction_points_changing_cluster(old_points, new_points, old_medoids, new_medoids)
+        fraction_points_changing_cluster_result = self.fraction_point_center(old_points, old_medoids, new_points, new_medoids, pair1, pair2)
         solution_cost_result = (self.solution_cost(old_points, old_medoids), self.solution_cost(new_points, new_medoids))
         number_of_clusters_result = (self.number_of_clusters(old_medoids), self.number_of_clusters(new_medoids))
         return fraction_points_changing_cluster_result, solution_cost_result, number_of_clusters_result
@@ -397,8 +401,8 @@ class HSAlgorithm:
         labels = []  
         # set random seed = 5331
         if (seed is not None and is_fix_random_pattern):
-            np.random.seed(seed)
-        initial_center_index = np.random.choice(n)
+            random.seed(seed)
+        initial_center_index = random.choice(range(n))
         centers.append(points[initial_center_index])
 
         for center_index in range(1, k):
@@ -460,7 +464,7 @@ class PAMAlgorithm:
 
     def pam(self, max_iter=100):
         # Randomly select k initial medoids
-        initial_indices = np.random.choice(len(self.points), self.cluster_num, replace=False)
+        initial_indices = random.sample(range(len(self.points)), self.cluster_num)
         medoids = initial_indices.copy()
 
         for _ in range(max_iter):
