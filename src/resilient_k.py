@@ -69,7 +69,7 @@ class Graph:
 
 
 class Gonz_Approx_Algo:
-    def __init__(self, dataset, k, seed=5331):
+    def __init__(self, dataset, k, seed=None):
         self.dataset = dataset
         self.k = k
         self.seed = seed
@@ -81,12 +81,12 @@ class Gonz_Approx_Algo:
             self.head = None
 
     def clustering(self):
-        def initialize_clusters(dataset, seed=5331):
+        def initialize_clusters(dataset):
             # Since we need to initialize the first cluster, there must be someone who does that first
             cluster = Gonz_Approx_Algo.Cluster()  # call class Cluster
             cluster.elements = dataset.tolist()  # All data now become the point of cluster 1
-            if seed is not None:
-                random.seed(seed)
+            if self.seed is not None:
+                random.seed(self.seed)
             cluster.head = random.choice(cluster.elements)
             return [cluster]
 
@@ -140,7 +140,7 @@ class Gonz_Approx_Algo:
 
             return heads
 
-        clusters = initialize_clusters(self.dataset, self.seed)
+        clusters = initialize_clusters(self.dataset)
         for self.k in range(2,
                             self.k + 1):  # note that it should be range(2, k+1), we start from 2 because we already initialize a cluster
             clusters = expand_clusters(clusters, self.k)
@@ -152,7 +152,7 @@ class Gonz_Approx_Algo:
 
 
 class CarvingAlgorithm:
-    def __init__(self, points, seed=5331):
+    def __init__(self, points, seed=None):
         self.points = np.array(points)
         self.seed = seed
 
@@ -171,12 +171,12 @@ class CarvingAlgorithm:
         # print("Max distance: ", max_distance)
         return max_distance
 
-    def carve(self, R, k, seed=5331):
+    def carve(self, R):
         """Perform the carving algorithm with the given radius R and number of centers k."""
         centers = []
         uncovered_indices = set(range(len(self.points)))  # Set of indices of uncovered points
-        if (seed is not None):
-            random.seed(seed)
+        if self.seed is not None:
+            random.seed(self.seed)
 
         # while uncovered_indices and len(centers) < k:
         while uncovered_indices:
@@ -197,7 +197,7 @@ class CarvingAlgorithm:
         R_end = self.find_farthest_point_distance()  # one point is centre and all other points are within R distance
         R_mid = (R_start + R_end) // 2
         while R_end != R_start + 1:
-            centers = self.carve(R_mid, k, seed = self.seed)
+            centers = self.carve(R_mid)
             # print("R_mid: ", R_mid, "Centers: ", len(centers), "k: ", k, "best_R: ", best_R)
             if len(centers) <= k:
                 best_R = R_mid
@@ -206,12 +206,12 @@ class CarvingAlgorithm:
                 R_start = R_mid
             R_mid = (R_start + R_end) // 2
             # print("R_start: ", R_start, "R_end: ", R_end, "R_mid: ", R_mid)
-        print("Best R: ", best_R)
+        # print("Best R: ", best_R)
         return best_R
 
 
 class resilient_k_center():
-    def __init__(self, dataset, k, epsilon, lamb=0.1, alpha=1.0, beta=1.0, algorithm="gonz", seed=5331):
+    def __init__(self, dataset, k, epsilon, lamb=0.1, alpha=1.0, beta=1.0, algorithm="gonz", seed=None):
         if alpha != 0.5 and alpha != 1.0:
             raise ValueError("alpha must be 0.5 or 1.0")
         if beta != 0.5 and beta != 1.0:
@@ -228,10 +228,10 @@ class resilient_k_center():
         self.algorithm = algorithm
         self.algorithm_centers = int(self.beta * self.k)
         self.seed = seed
-
-    def resilient_k_center(self,seed=5331):
+    def resilient_k_center(self):
         # randomly assign centers (line 1)
-        np.random.seed(seed)
+        if self.seed is not None:
+            random.seed(self.seed)
         centers = self.dataset[np.random.choice(self.dataset.shape[0],
                                                 self.random_centers,
                                                 replace=False)]
@@ -265,9 +265,6 @@ class resilient_k_center():
         #print("weighted graph: \n", g.graph)
 
         # construct MST (line 6)
-        '''
-        ?
-        '''
         T = g.kruskal_mst() 
         #print("resilient MST: \n", T)
 
@@ -309,9 +306,9 @@ class resilient_k_center():
             approx_algo = Gonz_Approx_Algo(self.dataset, self.algorithm_centers, self.seed)
             centers_approx = approx_algo.clustering()
         elif self.algorithm == "carv":
-            approx_algo = CarvingAlgorithm(self.dataset,seed=seed)
+            approx_algo = CarvingAlgorithm(self.dataset,seed=self.seed)
             best_r = approx_algo.find_minimum_R(self.algorithm_centers)
-            centers_approx = approx_algo.carve(best_r, self.algorithm_centers,seed=seed)
+            centers_approx = approx_algo.carve(best_r)
         else:
             raise ValueError("Algorithm not supported")
         #print("Centers selected by Approx: \n", centers_approx)
