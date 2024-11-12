@@ -1,6 +1,5 @@
 import numpy as np
 import copy
-import random
 import math
 
 # helper function
@@ -86,8 +85,11 @@ class Gonz_Approx_Algo:
             cluster = Gonz_Approx_Algo.Cluster()  # call class Cluster
             cluster.elements = dataset.tolist()  # All data now become the point of cluster 1
             if self.seed is not None:
-                random.seed(self.seed)
-            cluster.head = random.choice(cluster.elements)
+                np.random.seed(self.seed)
+            
+            head_idx = np.random.choice(len(cluster.elements), replace=False)
+            
+            cluster.head = cluster.elements[head_idx]  # Randomly choose the head of the cluster
             return [cluster]
 
         def expand_clusters(clusters, j):
@@ -176,12 +178,13 @@ class CarvingAlgorithm:
         centers = []
         uncovered_indices = set(range(len(self.points)))  # Set of indices of uncovered points
         if self.seed is not None:
-            random.seed(self.seed)
+            np.random.seed(self.seed)
 
         # while uncovered_indices and len(centers) < k:
         while uncovered_indices:
             # Randomly select an uncovered point
-            idx = random.choice(list(uncovered_indices))
+            uncover_point_index = np.random.choice(len(list(uncovered_indices)), replace=False)
+            idx = list(uncovered_indices)[uncover_point_index]
             center = self.points[idx]
             centers.append(center)
 
@@ -231,7 +234,7 @@ class resilient_k_center():
     def resilient_k_center(self):
         # randomly assign centers (line 1)
         if self.seed is not None:
-            random.seed(self.seed)
+            np.random.seed(self.seed)
         centers = self.dataset[np.random.choice(self.dataset.shape[0],
                                                 self.random_centers,
                                                 replace=False)]

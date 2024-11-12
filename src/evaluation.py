@@ -16,7 +16,6 @@ import numpy as np
 from scipy.spatial import distance
 import math
 import copy
-import random 
 import networkx as nx
 from scipy.linalg import eigh
 from sklearn.cluster import KMeans
@@ -199,12 +198,13 @@ class CarvingAlgorithm:
         uncovered_indices = set(range(len(self.points)))  # Set of indices of uncovered points
 
         if self.seed is not None:
-            random.seed(self.seed)
+            np.random.seed(self.seed)
 
         # while uncovered_indices and len(centers) < k:
         while uncovered_indices:
             # Randomly select an uncovered point
-            idx = random.choice(list(uncovered_indices))
+            uncover_point_index = np.random.choice(len(list(uncovered_indices)), replace=False)
+            idx = list(uncovered_indices)[uncover_point_index]
             center = self.points[idx]
             centers.append(center)
 
@@ -259,8 +259,11 @@ class Gonz_Approx_Algo:
             cluster = Gonz_Approx_Algo.Cluster()  # call class Cluster
             cluster.elements = dataset.tolist()  # All data now become the point of cluster 1
             if self.seed is not None:
-                random.seed(self.seed)
-            cluster.head = random.choice(cluster.elements)
+                np.random.seed(self.seed)
+            
+            head_idx = np.random.choice(len(cluster.elements), replace=False)
+            
+            cluster.head = cluster.elements[head_idx]  # Randomly choose the head of the cluster
             return [cluster]
         
         def distance(point1, point2):
@@ -331,57 +334,6 @@ class Gonz_Approx_Algo:
             nearest_center_index = np.argmin([distance(point, center) for center in heads])
             labels.append((point, nearest_center_index))
         return heads, labels
-    
-# class GonzalezAlgorithm:
-#     # Modified from https://github.com/TSunny007/Clustering/blob/master/notebooks/Gonzalez.ipynb
-#     def __init__(self, points, cluster_num):
-#         self.points = np.array(points)
-#         self.cluster_num = cluster_num
-    
-#     def max_dist(self, data, clusters):
-#         distances = np.zeros(len(data))
-#         for cluster_id, cluster in enumerate(clusters):
-#             for point_id, point in enumerate(data):
-#                 if distance.euclidean(point,cluster) == 0.0:
-#                     distances[point_id] = -math.inf # this point is already a cluster 
-#                 if not math.isinf(distances[point_id]):
-#                     distances[point_id] = distances[point_id] + distance.euclidean(point,cluster) 
-#         return data[np.argmax(distances)]
-
-#     def norm_dist(self, data, clusters):
-#         distances = np.zeros(len(data)) 
-#         for point_id, point in enumerate(data):
-#             for cluster_id, cluster in enumerate(clusters):
-#                 if distance.euclidean(point,cluster) == 0.0:
-#                     distances[point_id] = -math.inf 
-#                 if not math.isinf(distances[point_id]):
-#                     distances[point_id] = distances[point_id] + math.pow(distance.euclidean(point,cluster),2) 
-#         for distance_id, current_distance in enumerate(distances):
-#             if not math.isinf(current_distance): 
-#                 distances[distance_id] = math.sqrt(current_distance/len(data))
-#         return data[np.argmax(distances)]
-
-#     def gonzalez(self, method = 'max', seed = 5331):
-#         clusters = []
-#         # random choose first point
-#         random.seed(seed)
-#         clusters.append(random.choice(self.points)) # assign the first point to the first cluster
-#         while len(clusters) < self.cluster_num:
-#             if method == 'max':
-#                 clusters.append(self.max_dist(self.points, clusters)) 
-#             if method == 'norm':
-#                 clusters.append(self.norm_dist(self.points, clusters)) 
-#             # we add the furthest point from ALL current clusters
-#         labels = self.assign_labels(clusters)
-#         return clusters, labels
-
-#     def assign_labels(self, clusters):
-#         labels = []
-#         for point in self.points:
-#             # Find the nearest cluster for each point
-#             nearest_center_index = np.argmin([distance.euclidean(point, center) for center in clusters])
-#             labels.append((point, nearest_center_index))  # (data point, index of nearest center)
-#         return labels
     
 class HSAlgorithm:
     def __init__(self, points, cluster_num):
