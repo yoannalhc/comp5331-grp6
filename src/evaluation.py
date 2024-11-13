@@ -32,10 +32,14 @@ class Metrics():
     def init(self):
         pass
     
-    def fraction_point_center(self, old_points, old_medoids, new_points, new_medoids, pair1, pair2):
-        total = len(pair1)
+    def fraction_point_center(self, old_clusters, old_medoids, new_clusters, new_medoids):
+        total = len(old_clusters)
         changed_points = 0
-        for point1, point2 in zip(old_points, new_points):
+        pair1 = np.array([c[0] for c in old_clusters])
+        pair2 = np.array([c[0] for c in new_clusters])
+        # print("pair1: ", pair1)
+        # print("pair2: ", pair2)
+        for point1, point2 in zip(old_clusters, new_clusters):
             label1 = point1[1][0][0]
             center1 = old_medoids[label1]
             index1 = np.where(np.all(pair1 == center1, axis=1))[0][0]
@@ -132,9 +136,9 @@ class Metrics():
         """Count the number of unique clusters formed."""
         return len(np.unique(clusters, axis=0))
 
-    def evaluate(self, old_points, old_medoids, new_points, new_medoids, epsilon, pair1, pair2):
+    def evaluate(self, old_points, old_medoids, new_points, new_medoids, epsilon):
         # fraction_points_changing_cluster_result, mapping = self.fraction_points_changing_cluster(old_points, new_points, old_medoids, new_medoids)
-        fraction_points_changing_cluster_result = self.fraction_point_center(old_points, old_medoids, new_points, new_medoids, pair1, pair2)
+        fraction_points_changing_cluster_result = self.fraction_point_center(old_points, old_medoids, new_points, new_medoids)
         solution_cost_result = (self.solution_cost(old_points, old_medoids), self.solution_cost(new_points, new_medoids))
         number_of_clusters_result = (self.number_of_clusters(old_medoids), self.number_of_clusters(new_medoids))
         return fraction_points_changing_cluster_result, solution_cost_result, number_of_clusters_result
