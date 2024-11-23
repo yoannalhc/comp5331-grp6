@@ -51,7 +51,9 @@ class Metrics():
             if index1 != index2:
                 changed_points += 1
         return changed_points / total
-            
+    
+    
+    # implemented with cluster matching 
     def fraction_points_changing_cluster(self, labels1, labels2, centers1, centers2):
         # Number of clusters in each dataset
         num_clusters1 = len(centers1)
