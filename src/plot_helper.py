@@ -78,7 +78,7 @@ def plot_data(pair1, pair2, save_path, ds_name):
     plt.savefig(join(save_path, f'{ds_name}_visual.png'), bbox_inches='tight')
     plt.show()
 
-def plot_cluster_result(pair1, pair2, label1, label2, save_path, ds, algo, alpha, beta):
+def plot_cluster_result(pair1, pair2, label1, label2, save_path, ds, algo):
 
     # Compute PCA of data set
     if pair1.shape[1] > 3:
@@ -146,6 +146,6 @@ def plot_cluster_result(pair1, pair2, label1, label2, save_path, ds, algo, alpha
         plt.tight_layout()
 
     fig.subplots_adjust(top=0.8)
-    plt.suptitle(f'{ds.name.title()} Clustering Result (k = {ds.k}, {algo.title()}({alpha}, {beta}))', y=0.98)
-    plt.savefig(join(save_path, f'{ds.name}_{ds.k}_{algo}({alpha}_{beta})_cluster_result.png'), bbox_inches='tight')
+    plt.suptitle(f'{ds.name.title()} Clustering Result (k = {ds.k}, {algo})', y=0.98)
+    plt.savefig(join(save_path, f'{ds.name}_{ds.k}_{algo}_cluster_result.png'), bbox_inches='tight')
     plt.show()

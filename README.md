@@ -6,7 +6,7 @@ The URL of the GitHub repository is at: https://github.com/yoannalhc/comp5331-gr
 ## How to execute 
 1. Download the repository to a local environment.
 2. Download the datasets and place them in the correct folder. (Refer to [Dataset](#Dataset))
-3. Run [COMP5331_Project.ipynb](COMP5331_Project_refactored.ipynb) in order.
+3. Run [COMP5331_Project.ipynb](COMP5331_Project.ipynb) in order.
 
 ## Datasets
 Datasets are downloaded from: 
@@ -14,16 +14,16 @@ Datasets are downloaded from:
 2. Uber: https://www.kaggle.com/datasets/fivethirtyeight/uber-pickups-in-new-york-city
 3. Brightkite, Gowalla: https://snap.stanford.edu/data/index.html#locnet
 
-Processed datasets can be found at: https://hkustconnect-my.sharepoint.com/:f:/g/personal/hcloaf_connect_ust_hk/En_JVSFmi9hKljeLxGh-nJIBhH5bZDmeVSu16TGjJ7HI7w?e=NLdsAn
+Processed datasets can be found at: https://hkustconnect-my.sharepoint.com/:f:/g/personal/hcloaf_connect_ust_hk/En_JVSFmi9hKljeLxGh-nJIBhH5bZDmeVSu16TGjJ7HI7w?e=iGvflF
 
 Download them and put them into `./dataset`
 ```
 project
 📂dataset
 └───📂birch
-│       │ 📜birch1_epsilon.csv
-│       │ 📜birch2_epsilon.csv
-│       │ 📜birch3_epsilon.csv
+│       │ 📜shrink_birch1_epsilon.csv
+│       │ 📜shrink_birch2_epsilon.csv
+│       │ 📜shrink_birch3_epsilon.csv
 └───📂high_dim
 │       │ 📜dim032_epsilon.csv
 │       │ 📜dim064_epsilon.csv
@@ -36,20 +36,19 @@ project
 ```
 
 ## Description of each source file
-- `COMP5331_Project_refactored.ipynb`: The entrance of the program, use it to run
+- `COMP5331_Project.ipynb`: The entrance of the program, use it to run
 - `src/dataset.py`: Contain dataset classes
 - `src/resilient_k.py`: Contain all the resilient algorithm-related classes
-- `src/evaluation/py`: Contain all the evaluation-related classes
+- `src/plot_helper.py`: Contain function to plot the data
+- `src/evaluation.py`: Contain all the evaluation-related classes
 - `src/preprocess/helper.py`: Contain helper function to process dataset
 - `src/preprocess/process_birch.py`: Contain function to process the Birch datasets
 - `src/preprocess/process_geo.py`: Contain function to process the geographic datasets
 - `src/preprocess/process_high_dim.py`: Contain function to process the high dimensional datasets
 - `src/preprocess/process_uber.py`: Contain the function to process the Uber dataset
-- `src/testing/find_pair_assignment.py`: Contain the function to find pair assignment in two clustering results
-- `src/testing/plot_helper.py`: Contain function to plot the data
 
 ## Example
-See demo in [COMP5331_Project.ipynb](COMP5331_Project_refactored.ipynb)
+See demo in [COMP5331_Project.ipynb](COMP5331_Project.ipynb)
 
 ## Running Environment
 We use Windows OS as the environment in our project.

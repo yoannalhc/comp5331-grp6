@@ -40,6 +40,7 @@ class Metrics():
         for point1, point2 in zip(labels1, labels2):
             label1 = point1[1][0][0]
             center1 = centers1[label1]
+            # find the index of center1 in labels1
             index1 = np.where(np.all(pair1 == center1, axis=1))[0][0]
             label2 = point2[1][0][0]
             center2 = centers2[label2]
