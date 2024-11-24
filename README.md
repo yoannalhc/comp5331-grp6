@@ -5,18 +5,21 @@ The URL of the GitHub repository is at: https://github.com/yoannalhc/comp5331-gr
 
 ## How to execute 
 1. Download the repository to a local environment.
-2. Download the datasets and place them in the correct folder. (Refer to [Dataset](#Dataset))
-3. Run [COMP5331_Project.ipynb](COMP5331_Project.ipynb) in order.
+2. Download the datasets and place them in the correct folder. (Refer to [Datasets](#ds))
+3. Install the dependency using `pip install -r requirements.txt` with [requirements.txt](requirements.txt) and Python 3.9.
+3. Run [COMP5331_Project.ipynb](COMP5331_Project.ipynb) in order (skip the section `Preprocess datasets` if processed datasets are downloaded).
 
-## Datasets
-Datasets are downloaded from: 
+## <a name="ds"></a> Datasets
+Raw datasets are downloaded from: 
 1. BIRCH, HIGH-DIM(low): https://cs.joensuu.fi/sipu/datasets/
 2. Uber: https://www.kaggle.com/datasets/fivethirtyeight/uber-pickups-in-new-york-city
 3. Brightkite, Gowalla: https://snap.stanford.edu/data/index.html#locnet
 
-Processed datasets can be found at: https://hkustconnect-my.sharepoint.com/:f:/g/personal/hcloaf_connect_ust_hk/En_JVSFmi9hKljeLxGh-nJIBhH5bZDmeVSu16TGjJ7HI7w?e=iGvflF
+Process the raw datasets by following the section `Preprocess datasets` in [COMP5331_Project.ipynb](COMP5331_Project.ipynb) or download the processed datasets.
 
-Download them and put them into `./dataset`
+- Processed datasets can be found at: https://hkustconnect-my.sharepoint.com/:f:/g/personal/hcloaf_connect_ust_hk/Ene4W-vYgMZIvV-Si5BI1HIBGO4pm0OZMmArLiOTuj3upA?e=DW9ZeS
+
+- Download them and put them into `./dataset`
 ```
 project
 📂dataset
@@ -37,7 +40,7 @@ project
 
 ## Description of each source file
 - `COMP5331_Project.ipynb`: The entrance of the program, use it to run
-- `src/dataset.py`: Contain dataset classes
+- `src/datasets.py`: Contain dataset classes
 - `src/resilient_k.py`: Contain all the resilient algorithm-related classes
 - `src/plot_helper.py`: Contain function to plot the data
 - `src/evaluation.py`: Contain all the evaluation-related classes
@@ -51,4 +54,4 @@ project
 See demo in [COMP5331_Project.ipynb](COMP5331_Project.ipynb)
 
 ## Running Environment
-We use Windows OS as the environment in our project.
+We use Python 3.9 on Windows OS as the environment in our project.
